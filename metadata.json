@@ -1,0 +1,8 @@
+{
+  "name": "ROM Collection Manager",
+  "description": "Scanne, katalogisiere und bereinige deine ROM-Sammlung mit No-Intro-Standards, 1G1R-Kuration, Schutz für Fan-Translations & Romhacks, automatischen M3U-Playlists für Multi-Disk-Spiele und 3D-Cover-Studio.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
