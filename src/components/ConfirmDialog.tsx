@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from '../i18n';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -14,12 +15,15 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   isOpen,
   title,
   message,
-  confirmLabel = 'Bestätigen',
+  confirmLabel,
   confirmVariant = 'danger',
   onConfirm,
   onCancel,
 }) => {
+  const { t } = useTranslation();
   if (!isOpen) return null;
+
+  const resolvedConfirmLabel = confirmLabel || t('confirm.confirm');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xl">
@@ -34,7 +38,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             onClick={onCancel}
             className="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900/50 text-slate-300 border border-white/15 hover:bg-slate-800 backdrop-blur-xs transition cursor-pointer"
           >
-            Abbrechen
+            {t('confirm.cancel')}
           </button>
           <button
             id="btn-confirm-dialog-action"
@@ -45,10 +49,11 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                 : 'bg-linear-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 shadow-violet-900/30'
             }`}
           >
-            {confirmLabel}
+            {resolvedConfirmLabel}
           </button>
         </div>
       </div>
     </div>
   );
 };
+

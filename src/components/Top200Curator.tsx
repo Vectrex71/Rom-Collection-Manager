@@ -3,6 +3,7 @@ import { Search } from 'lucide-react';
 import { RomFile } from '../types';
 import { TOP_200_ROMS } from '../data/topRomsData';
 import { PLATFORMS } from '../data/platformsData';
+import { useTranslation } from '../i18n';
 
 interface Top200CuratorProps {
   roms: RomFile[];
@@ -13,6 +14,7 @@ export const Top200Curator: React.FC<Top200CuratorProps> = ({
   roms,
   onIsolateTop200,
 }) => {
+  const { t, language } = useTranslation();
   const [filterMode, setFilterMode] = useState<'all' | 'owned' | 'missing'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState<string>('ALL');
@@ -86,9 +88,11 @@ export const Top200Curator: React.FC<Top200CuratorProps> = ({
       .map((i) => `#${i.rank} [${i.platform}] ${i.title} (${i.year}) - ${i.genre}`)
       .join('\n');
 
-    navigator.clipboard.writeText(
-      `=== Top 200 Retro ROMs - Fehlend (${200 - ownedCount} Spiele) ===\n\n${missing}`
-    );
+    const header = language === 'de'
+      ? `=== Top 200 Retro ROMs - Fehlend (${200 - ownedCount} Spiele) ===\n\n`
+      : `=== Top 200 Retro ROMs - Missing (${200 - ownedCount} Games) ===\n\n`;
+
+    navigator.clipboard.writeText(`${header}${missing}`);
     setCopiedWishlist(true);
     setTimeout(() => setCopiedWishlist(false), 2000);
   };
@@ -100,7 +104,7 @@ export const Top200Curator: React.FC<Top200CuratorProps> = ({
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div>
             <h2 className="text-sm font-bold text-white">
-              Top 200 Retro-Kuration
+              {language === 'de' ? 'Top 200 Retro-Kuration' : 'Top 200 Retro Curation'}
             </h2>
             <div className="mt-2 flex items-center gap-3">
               <span className="text-2xl font-bold text-white">{percentage}%</span>
@@ -111,7 +115,7 @@ export const Top200Curator: React.FC<Top200CuratorProps> = ({
                 />
               </div>
               <span className="text-xs text-slate-300 font-medium">
-                {ownedCount} / 200 in Sammlung
+                {language === 'de' ? `${ownedCount} / 200 in Sammlung` : `${ownedCount} / 200 in collection`}
               </span>
             </div>
           </div>
@@ -122,7 +126,7 @@ export const Top200Curator: React.FC<Top200CuratorProps> = ({
               onClick={onIsolateTop200}
               className="px-3 py-1.5 rounded-lg text-xs font-bold bg-violet-600 hover:bg-violet-500 text-white shadow-md shadow-violet-900/30 transition cursor-pointer"
             >
-              In _Top200/ ordnen
+              {language === 'de' ? 'In _Top200/ ordnen' : 'Organize into _Top200/'}
             </button>
 
             <button
@@ -130,7 +134,7 @@ export const Top200Curator: React.FC<Top200CuratorProps> = ({
               onClick={handleCopyMissingWishlist}
               className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-900/50 hover:bg-slate-800 text-slate-200 border border-white/15 backdrop-blur-md transition cursor-pointer"
             >
-              {copiedWishlist ? 'Kopiert!' : 'Fehlende Titel kopieren'}
+              {copiedWishlist ? (language === 'de' ? 'Kopiert!' : 'Copied!') : (language === 'de' ? 'Fehlende Titel kopieren' : 'Copy missing titles')}
             </button>
           </div>
         </div>
@@ -138,7 +142,7 @@ export const Top200Curator: React.FC<Top200CuratorProps> = ({
         {/* Platform breakdown */}
         <div className="mt-4 pt-3 border-t border-white/10 flex items-center gap-1.5 overflow-x-auto scrollbar-thin text-xs">
           <span className="text-slate-300 text-[11px] font-medium mr-1 uppercase shrink-0">
-            Systeme:
+            {language === 'de' ? 'Systeme:' : 'Systems:'}
           </span>
           {(Object.entries(platformStats) as [string, { total: number; owned: number }][]).map(([plat, stat]) => (
             <div
@@ -162,7 +166,7 @@ export const Top200Curator: React.FC<Top200CuratorProps> = ({
                 : 'text-slate-300 hover:text-white'
             }`}
           >
-            Alle (200)
+            {language === 'de' ? 'Alle (200)' : 'All (200)'}
           </button>
           <button
             onClick={() => setFilterMode('owned')}
@@ -172,7 +176,7 @@ export const Top200Curator: React.FC<Top200CuratorProps> = ({
                 : 'text-slate-300 hover:text-emerald-300'
             }`}
           >
-            Vorhanden ({ownedCount})
+            {language === 'de' ? `Vorhanden (${ownedCount})` : `Owned (${ownedCount})`}
           </button>
           <button
             onClick={() => setFilterMode('missing')}
@@ -182,7 +186,7 @@ export const Top200Curator: React.FC<Top200CuratorProps> = ({
                 : 'text-slate-300 hover:text-amber-300'
             }`}
           >
-            Fehlend ({200 - ownedCount})
+            {language === 'de' ? `Fehlend (${200 - ownedCount})` : `Missing (${200 - ownedCount})`}
           </button>
         </div>
 
@@ -192,7 +196,7 @@ export const Top200Curator: React.FC<Top200CuratorProps> = ({
             onChange={(e) => setSelectedPlatform(e.target.value)}
             className="bg-slate-900/50 border border-white/15 rounded-lg px-2.5 py-1 text-xs text-slate-200 cursor-pointer backdrop-blur-xs"
           >
-            <option value="ALL" className="bg-slate-900 text-white">Alle Systeme</option>
+            <option value="ALL" className="bg-slate-900 text-white">{language === 'de' ? 'Alle Systeme' : 'All Systems'}</option>
             {PLATFORMS.map((p) => (
               <option key={p.id} value={p.id} className="bg-slate-900 text-white">
                 {p.name}
@@ -206,7 +210,7 @@ export const Top200Curator: React.FC<Top200CuratorProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Titel filtern..."
+              placeholder={language === 'de' ? 'Titel filtern...' : 'Filter title...'}
               className="w-full bg-slate-900/40 border border-white/15 rounded-lg pl-7 pr-3 py-1 text-xs text-slate-100 placeholder-slate-400 focus:outline-hidden focus:border-violet-400 backdrop-blur-xs"
             />
           </div>
@@ -247,7 +251,7 @@ export const Top200Curator: React.FC<Top200CuratorProps> = ({
                     </div>
                   ) : (
                     <div className="text-[11px] text-slate-500">
-                      Nicht in Sammlung
+                      {language === 'de' ? 'Nicht in Sammlung' : 'Not in collection'}
                     </div>
                   )}
                 </div>
@@ -256,11 +260,11 @@ export const Top200Curator: React.FC<Top200CuratorProps> = ({
               <div className="shrink-0 self-center">
                 {item.isOwned ? (
                   <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-300 border border-emerald-500/30">
-                    Vorhanden
+                    {language === 'de' ? 'Vorhanden' : 'Owned'}
                   </span>
                 ) : (
                   <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-400 border border-white/10">
-                    Fehlt
+                    {language === 'de' ? 'Fehlt' : 'Missing'}
                   </span>
                 )}
               </div>
@@ -271,3 +275,4 @@ export const Top200Curator: React.FC<Top200CuratorProps> = ({
     </div>
   );
 };
+

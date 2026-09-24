@@ -3,6 +3,7 @@ import { Sparkles, ArrowRight } from 'lucide-react';
 import { PLATFORMS, ALL_GENRES } from '../data/platformsData';
 import { PlatformCode, ScanFilters } from '../types';
 import { ScanProgress } from '../utils/fileSystem';
+import { useTranslation } from '../i18n';
 
 interface FolderPickerCardProps {
   onSelectDirectory: (preFilters: ScanFilters) => Promise<void>;
@@ -19,6 +20,7 @@ export const FolderPickerCard: React.FC<FolderPickerCardProps> = ({
   scanProgress,
   onViewLandingPage,
 }) => {
+  const { t, language } = useTranslation();
   const folderInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedPlatforms, setSelectedPlatforms] = useState<PlatformCode[]>(
@@ -70,21 +72,20 @@ export const FolderPickerCard: React.FC<FolderPickerCardProps> = ({
   } | null>(null);
 
   const handleOpenFolderClick = async () => {
-    // Try native File System Access API first (shows "Ordner auswählen" in Windows instead of "Hochladen")
+    // Try native File System Access API first
     if (typeof (window as any).showDirectoryPicker === 'function') {
       try {
         await onSelectDirectory(getFilters());
         return;
       } catch (err: any) {
         if (err.name === 'AbortError') {
-          // User clicked cancel in Windows explorer, do nothing
           return;
         }
         console.warn('showDirectoryPicker failed or restricted in iframe, falling back to file input:', err);
       }
     }
 
-    // Fallback: HTML5 directory input (Chrome shows "Hochladen" button for this)
+    // Fallback: HTML5 directory input
     folderInputRef.current?.click();
   };
 
@@ -143,11 +144,11 @@ export const FolderPickerCard: React.FC<FolderPickerCardProps> = ({
             <div className="w-8 h-8 mx-auto border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
             <div className="text-sm font-bold text-white">
               {scanProgress?.stage === 'hashing'
-                ? 'Duplikate werden analysiert...'
-                : 'Verzeichnis wird gescannt...'}
+                ? (language === 'de' ? 'Duplikate werden analysiert...' : 'Analyzing duplicates...')
+                : t('folderPicker.scanning')}
             </div>
             <div className="text-xs text-slate-400 font-mono truncate max-w-sm mx-auto">
-              {scanProgress?.currentFilename || 'Dateien werden gescannt...'}
+              {scanProgress?.currentFilename || (language === 'de' ? 'Dateien werden gescannt...' : 'Scanning files...')}
             </div>
             <div className="max-w-xs mx-auto bg-slate-900/60 rounded-full h-1.5 overflow-hidden border border-white/10">
               <div
@@ -169,9 +170,9 @@ export const FolderPickerCard: React.FC<FolderPickerCardProps> = ({
         ) : (
           <div className="space-y-4">
             <div>
-              <h2 className="text-base font-bold text-white">ROM-Sammlung scannen</h2>
+              <h2 className="text-base font-bold text-white">{t('folderPicker.title')}</h2>
               <p className="text-xs text-slate-400 mt-1">
-                ROM-Ordner oder SD-Karte per Drag & Drop hineinziehen oder zum Scannen auswählen.
+                {t('folderPicker.subtitle')}
               </p>
             </div>
 
@@ -182,7 +183,7 @@ export const FolderPickerCard: React.FC<FolderPickerCardProps> = ({
                 onClick={handleOpenFolderClick}
                 className="px-5 py-2.5 rounded-xl text-xs font-bold bg-linear-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-lg shadow-violet-900/40 transition cursor-pointer"
               >
-                Ordner scannen
+                {t('folderPicker.selectFolderBtn')}
               </button>
 
               <button
@@ -190,31 +191,47 @@ export const FolderPickerCard: React.FC<FolderPickerCardProps> = ({
                 onClick={() => setShowFilters(!showFilters)}
                 className="px-4 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white bg-slate-900/40 hover:bg-slate-800/60 border border-white/15 backdrop-blur-md transition cursor-pointer"
               >
-                Filter {showFilters ? 'ausblenden' : `(${selectedPlatforms.length} Systeme)`}
+                {showFilters 
+                  ? (language === 'de' ? 'Filter ausblenden' : 'Hide filters') 
+                  : (language === 'de' ? `Filter (${selectedPlatforms.length} Systeme)` : `Filters (${selectedPlatforms.length} Systems)`)}
               </button>
             </div>
 
             {/* What happens when selecting a system folder */}
             <div className="mt-4 pt-3 border-t border-white/10 text-xs text-slate-300 max-w-xl mx-auto leading-relaxed text-left">
               <div className="flex items-center gap-2 mb-2.5 justify-center">
-                <span className="font-bold text-white text-xs">Was passiert bei der Auswahl eines System-Ordners?</span>
+                <span className="font-bold text-white text-xs">
+                  {language === 'de' ? 'Was passiert bei der Auswahl eines System-Ordners?' : 'What happens when selecting a ROM folder?'}
+                </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11px] text-slate-300">
                 <div className="p-2.5 rounded-xl bg-slate-900/40 border border-white/10 backdrop-blur-xs">
-                  <div className="font-bold text-cyan-300 mb-0.5">1. Automatische Erkennung</div>
-                  Plattformen (z. B. NES, Commodore Amiga, Genesis) und Dateiformate werden blitzschnell identifiziert.
+                  <div className="font-bold text-cyan-300 mb-0.5">
+                    {language === 'de' ? '1. Automatische Erkennung' : '1. Automatic Detection'}
+                  </div>
+                  {language === 'de' 
+                    ? 'Plattformen (z. B. NES, Amiga, Genesis) und Dateiformate werden blitzschnell identifiziert.' 
+                    : 'Platforms (e.g. NES, Amiga, Genesis) and file formats are identified instantly.'}
                 </div>
                 <div className="p-2.5 rounded-xl bg-slate-900/40 border border-white/10 backdrop-blur-xs">
-                  <div className="font-bold text-emerald-300 mb-0.5">2. Multi-Disk & M3U</div>
-                  Zusammengehörige Disketten werden gebündelt, in Unterordner sortiert und M3U-Playlists erstellt.
+                  <div className="font-bold text-emerald-300 mb-0.5">
+                    {language === 'de' ? '2. Multi-Disk & M3U' : '2. Multi-Disc & M3U'}
+                  </div>
+                  {language === 'de' 
+                    ? 'Zusammengehörige Disketten werden gebündelt, in Unterordner sortiert und M3U-Playlists erstellt.' 
+                    : 'Multi-disc titles are bundled, sorted into subfolders, and generated as M3U playlists.'}
                 </div>
                 <div className="p-2.5 rounded-xl bg-slate-900/40 border border-white/10 backdrop-blur-xs">
-                  <div className="font-bold text-amber-300 mb-0.5">3. 1G1R & Bereinigung</div>
-                  Dumping-Kürzel [!] werden entfernt und Duplikate sicher im Ordner <code className="text-amber-200">_Duplicates/</code> isoliert.
+                  <div className="font-bold text-amber-300 mb-0.5">
+                    {language === 'de' ? '3. 1G1R & Bereinigung' : '3. 1G1R & Curation'}
+                  </div>
+                  {language === 'de' 
+                    ? 'Dumping-Kürzel [!] werden entfernt und Duplikate sicher im Ordner _Duplicates/ isoliert.' 
+                    : 'Cryptic tags [!] are cleaned and duplicates are safely isolated in _Duplicates/.'}
                 </div>
               </div>
               <p className="text-center text-[11px] text-slate-400 mt-2.5">
-                🔒 <strong className="text-slate-300">100% lokaler Scan:</strong> Keine Dateien werden ins Internet hochgeladen oder unwiderruflich gelöscht.
+                🔒 <strong className="text-slate-300">{t('folderPicker.securityNote')}</strong>
               </p>
             </div>
 
@@ -226,8 +243,12 @@ export const FolderPickerCard: React.FC<FolderPickerCardProps> = ({
                     <Sparkles className="w-4 h-4 text-amber-300" />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-white">Was macht der ROM Collection Manager genau?</div>
-                    <div className="text-[11px] text-slate-400">Erfahre alles über 1G1R-Kuration, No-Intro Standard & das Multi-Disk M3U-Paket.</div>
+                    <div className="text-xs font-bold text-white">
+                      {language === 'de' ? 'Was macht der ROM Collection Manager genau?' : 'What does the ROM Collection Manager do?'}
+                    </div>
+                    <div className="text-[11px] text-slate-400">
+                      {language === 'de' ? 'Erfahre alles über 1G1R-Kuration, No-Intro Standard & das Multi-Disk M3U-Paket.' : 'Learn all about 1G1R curation, No-Intro standards, and multi-disc M3U playlists.'}
+                    </div>
                   </div>
                 </div>
                 <button
@@ -235,7 +256,7 @@ export const FolderPickerCard: React.FC<FolderPickerCardProps> = ({
                   onClick={onViewLandingPage}
                   className="w-full sm:w-auto px-3.5 py-1.5 rounded-lg text-xs font-bold bg-slate-800/60 hover:bg-slate-800 text-slate-200 border border-white/15 transition shadow-xs shrink-0 cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <span>Funktionen ansehen</span>
+                  <span>{language === 'de' ? 'Funktionen ansehen' : 'View Features'}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -260,12 +281,12 @@ export const FolderPickerCard: React.FC<FolderPickerCardProps> = ({
       {showFilters && (
         <div className="p-4 rounded-2xl frosted-glass space-y-3">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-slate-300">Systeme ({selectedPlatforms.length}/{PLATFORMS.length})</span>
+            <span className="font-semibold text-slate-300">{t('folderPicker.supportedSystems')} ({selectedPlatforms.length}/{PLATFORMS.length})</span>
             <button
               onClick={toggleAllPlatforms}
               className="text-violet-400 hover:text-violet-300 font-medium cursor-pointer"
             >
-              {selectedPlatforms.length === PLATFORMS.length ? 'Alle abwählen' : 'Alle auswählen'}
+              {selectedPlatforms.length === PLATFORMS.length ? (language === 'de' ? 'Alle abwählen' : 'Deselect all') : t('folderPicker.toggleAll')}
             </button>
           </div>
 
@@ -296,7 +317,7 @@ export const FolderPickerCard: React.FC<FolderPickerCardProps> = ({
                 onChange={(e) => setHideBadDumps(e.target.checked)}
                 className="rounded border-slate-700 bg-slate-800 text-violet-600 focus:ring-0"
               />
-              <span>Defekte Dumps ([b]) direkt als Duplikat markieren</span>
+              <span>{t('folderPicker.hideBadDumpsLabel')}</span>
             </label>
           </div>
         </div>
@@ -314,10 +335,14 @@ export const FolderPickerCard: React.FC<FolderPickerCardProps> = ({
             {/* Title & Description */}
             <div className="space-y-1.5">
               <h3 className="text-lg font-bold text-white">
-                Sollen {stagedScan.count} Dateien analysiert werden?
+                {language === 'de' 
+                  ? `Sollen ${stagedScan.count} Dateien analysiert werden?`
+                  : `Analyze ${stagedScan.count} files?`}
               </h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Hierdurch werden alle Dateien aus <span className="font-semibold text-white">„{stagedScan.folderName}“</span> eingelesen, auf Duplikate geprüft und für das No-Intro-Umbenennen vorbereitet.
+                {language === 'de'
+                  ? `Hierdurch werden alle Dateien aus „${stagedScan.folderName}“ eingelesen, auf Duplikate geprüft und für das No-Intro-Umbenennen vorbereitet.`
+                  : `This will scan all files from "${stagedScan.folderName}", check for duplicates, and prepare No-Intro renaming.`}
               </p>
             </div>
 
@@ -325,8 +350,12 @@ export const FolderPickerCard: React.FC<FolderPickerCardProps> = ({
             <div className="bg-emerald-950/30 border border-emerald-500/30 backdrop-blur-md rounded-xl p-3 text-left flex items-start gap-2.5">
               <span className="text-base text-emerald-400 shrink-0 mt-0.5">🛡️</span>
               <div className="text-[11px] text-emerald-300 leading-normal">
-                <span className="font-semibold block text-emerald-200">100% lokaler Scan in deinem Browser</span>
-                Deine ROMs werden <span className="font-medium">nicht</span> auf externe Server hochgeladen. Alle Prüfsummen und No-Intro-Katalogabgleiche laufen rein lokal in deinem PC-Speicher.
+                <span className="font-semibold block text-emerald-200">
+                  {language === 'de' ? '100% lokaler Scan in deinem Browser' : '100% Local Scan in your Browser'}
+                </span>
+                {language === 'de'
+                  ? 'Deine ROMs werden nicht auf externe Server hochgeladen. Alle Prüfsummen und No-Intro-Katalogabgleiche laufen rein lokal in deinem PC-Speicher.'
+                  : 'Your ROMs are not uploaded to external servers. All checksums and No-Intro matches run purely in local memory.'}
               </div>
             </div>
 
@@ -338,7 +367,7 @@ export const FolderPickerCard: React.FC<FolderPickerCardProps> = ({
                 onClick={() => setStagedScan(null)}
                 className="flex-1 px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-900/60 hover:bg-slate-800 text-slate-300 border border-white/10 transition cursor-pointer"
               >
-                Abbrechen
+                {t('confirm.cancel')}
               </button>
               <button
                 id="btn-modal-confirm-scan"
@@ -346,7 +375,7 @@ export const FolderPickerCard: React.FC<FolderPickerCardProps> = ({
                 onClick={confirmStagedScan}
                 className="flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-linear-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-md shadow-violet-900/30 transition cursor-pointer"
               >
-                Jetzt scannen ({stagedScan.count})
+                {language === 'de' ? `Jetzt scannen (${stagedScan.count})` : `Scan Now (${stagedScan.count})`}
               </button>
             </div>
           </div>
@@ -355,3 +384,4 @@ export const FolderPickerCard: React.FC<FolderPickerCardProps> = ({
     </div>
   );
 };
+

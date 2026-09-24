@@ -18,8 +18,6 @@ Organize, clean, and enrich your entire ROM library with **1G1R curation**, **mu
 
 </div>
 
-<img width="1918" height="1014" alt="image" src="https://github.com/user-attachments/assets/706d34f1-3520-4b28-811e-3189aee9fa53" />
-
 ## 🌟 Key Features
 
 ### 🛡️ 1. 1G1R (1 Game 1 ROM) Smart Curation

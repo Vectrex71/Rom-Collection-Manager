@@ -23,6 +23,7 @@ import {
   ExternalLink,
   Disc,
 } from 'lucide-react';
+import { useTranslation } from '../i18n';
 
 interface MultiDiscModalProps {
   isOpen: boolean;
@@ -44,6 +45,7 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
   onUpdateRoms,
   allRoms,
 }) => {
+  const { t, language } = useTranslation();
   const [useSubfolders, setUseSubfolders] = useState<boolean>(true);
   const [selectedSetId, setSelectedSetId] = useState<string>(multiDiscSets[0]?.id || '');
   const [isApplyingDirect, setIsApplyingDirect] = useState<boolean>(false);
@@ -64,7 +66,9 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
     downloadScriptFile(batContent, 'M3U_Rundum_Sorglos_Windows.bat');
     setStatusMessage({
       type: 'success',
-      text: 'M3U_Rundum_Sorglos_Windows.bat heruntergeladen! Lege die Datei einfach in deinen ROM-Ordner und doppelklicke sie.',
+      text: language === 'de' 
+        ? 'M3U_Rundum_Sorglos_Windows.bat heruntergeladen! Lege die Datei einfach in deinen ROM-Ordner und doppelklicke sie.'
+        : 'M3U_Rundum_Sorglos_Windows.bat downloaded! Place the file in your ROM folder and double-click it.',
     });
   };
 
@@ -74,7 +78,9 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
     downloadScriptFile(psContent, 'M3U_Rundum_Sorglos_PowerShell.ps1');
     setStatusMessage({
       type: 'success',
-      text: 'M3U_Rundum_Sorglos_PowerShell.ps1 heruntergeladen! Führe die Datei im ROM-Ordner per Rechtsklick mit PowerShell aus.',
+      text: language === 'de'
+        ? 'M3U_Rundum_Sorglos_PowerShell.ps1 heruntergeladen! Führe die Datei im ROM-Ordner per Rechtsklick mit PowerShell aus.'
+        : 'M3U_Rundum_Sorglos_PowerShell.ps1 downloaded! Right-click and run with PowerShell in your ROM folder.',
     });
   };
 
@@ -84,7 +90,9 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
     downloadScriptFile(bashContent, 'M3U_Rundum_Sorglos_Linux.sh');
     setStatusMessage({
       type: 'success',
-      text: 'M3U_Rundum_Sorglos_Linux.sh heruntergeladen! Im Terminal mit "bash M3U_Rundum_Sorglos_Linux.sh" ausführen.',
+      text: language === 'de'
+        ? 'M3U_Rundum_Sorglos_Linux.sh heruntergeladen! Im Terminal mit "bash M3U_Rundum_Sorglos_Linux.sh" ausführen.'
+        : 'M3U_Rundum_Sorglos_Linux.sh downloaded! Execute in terminal with "bash M3U_Rundum_Sorglos_Linux.sh".',
     });
   };
 
@@ -104,7 +112,9 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
     if (!rootDirectoryHandle) {
       setStatusMessage({
         type: 'error',
-        text: 'Kein Verzeichnis-Schreibzugriff aktiv. Nutze bitte das 1-Klick Windows-Skript (.bat) unten.',
+        text: language === 'de' 
+          ? 'Kein Verzeichnis-Schreibzugriff aktiv. Nutze bitte das 1-Klick Windows-Skript (.bat) unten.'
+          : 'No folder write access active. Please use the 1-click Windows script (.bat) below.',
       });
       return;
     }
@@ -139,13 +149,15 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
 
       setStatusMessage({
         type: 'success',
-        text: `Vollautomatisch erledigt! Alle ${multiDiscSets.length} Spiele (${totalDiscsCount} Disks) wurden in Unterordner sortiert und alle .m3u Playlists geschrieben.`,
+        text: language === 'de'
+          ? `Vollautomatisch erledigt! Alle ${multiDiscSets.length} Spiele (${totalDiscsCount} Disks) wurden in Unterordner sortiert und alle .m3u Playlists geschrieben.`
+          : `Completed automatically! All ${multiDiscSets.length} games (${totalDiscsCount} discs) sorted into subfolders and all .m3u playlists generated.`,
       });
     } catch (err: any) {
       console.error('Fehler beim direkten Ausführen:', err);
       setStatusMessage({
         type: 'error',
-        text: `Fehler beim Ausführen: ${err?.message || err}`,
+        text: `${language === 'de' ? 'Fehler beim Ausführen' : 'Execution error'}: ${err?.message || err}`,
       });
     } finally {
       setIsApplyingDirect(false);
@@ -170,14 +182,16 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
                 <Disc className="w-4 h-4" />
               </span>
               <h2 className="text-base font-bold text-white tracking-tight">
-                Multi-Disk & M3U Verwaltung
+                {t('multidiscModal.title')}
               </h2>
               <span className="text-xs font-semibold text-slate-400">
-                ({multiDiscSets.length} Spiele, {totalDiscsCount} Disks)
+                {language === 'de' 
+                  ? `(${multiDiscSets.length} Spiele, ${totalDiscsCount} Disks)` 
+                  : `(${multiDiscSets.length} Games, ${totalDiscsCount} Discs)`}
               </span>
             </div>
             <p className="text-xs text-slate-300 mt-1">
-              Erstellt Unterordner, sortiert Disketten ein und generiert kompatible M3U-Playlists für RetroArch und Batocera.
+              {t('multidiscModal.subtitle')}
             </p>
           </div>
           <button
@@ -201,14 +215,18 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
                     onChange={(e) => setUseSubfolders(e.target.checked)}
                     className="rounded text-violet-600 focus:ring-violet-500 border-slate-700 bg-slate-800 cursor-pointer"
                   />
-                  <span>Disketten in Unterordner verschieben (Empfohlen für RetroArch & Batocera)</span>
+                  <span>{t('multidiscModal.optionSubfolder')}</span>
                 </label>
               </div>
 
               <p className="text-xs text-slate-400 leading-relaxed">
                 {rootDirectoryHandle
-                  ? 'Klicke auf den Button, um alle Disketten vollautomatisch in Unterordner zu sortieren und passende .m3u Playlists zu schreiben.'
-                  : 'Öffne die App im eigenen Tab für direkten Festplatten-Zugriff oder lade die fertige 1-Klick Datei herunter.'}
+                  ? (language === 'de' 
+                      ? 'Klicke auf den Button, um alle Disketten vollautomatisch in Unterordner zu sortieren und passende .m3u Playlists zu schreiben.'
+                      : 'Click the button to automatically sort all discs into subfolders and generate compatible .m3u playlists.')
+                  : (language === 'de'
+                      ? 'Öffne die App im eigenen Tab für direkten Festplatten-Zugriff oder lade die fertige 1-Klick Datei herunter.'
+                      : 'Open the app in a new tab for direct disk access, or download the 1-click script.')}
               </p>
             </div>
 
@@ -221,7 +239,11 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
                 className="w-full md:w-auto px-5 py-3 font-bold text-xs sm:text-sm text-white bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.99] rounded-xl shadow-lg shadow-emerald-900/40 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 <FolderSync className="w-4 h-4" />
-                <span>{isApplyingDirect ? 'Wird ausgeführt...' : '⚡ Jetzt vollautomatisch im Ordner anwenden'}</span>
+                <span>
+                  {isApplyingDirect 
+                    ? (language === 'de' ? 'Wird ausgeführt...' : 'Executing...') 
+                    : (language === 'de' ? '⚡ Jetzt vollautomatisch im Ordner anwenden' : '⚡ Apply automatically to folder')}
+                </span>
               </button>
             ) : (
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
@@ -231,17 +253,17 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
                   className="px-4 py-2.5 font-bold text-xs text-white bg-linear-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 rounded-xl shadow-md shadow-violet-900/30 transition flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <ExternalLink className="w-4 h-4" />
-                  <span>🚀 In eigenem Tab öffnen (Vollautomatisch)</span>
+                  <span>{language === 'de' ? '🚀 In eigenem Tab öffnen (Vollautomatisch)' : '🚀 Open in New Tab (Direct Access)'}</span>
                 </button>
 
                 <button
                   id="download-bat-btn"
                   onClick={handleDownloadBat}
                   className="px-4 py-2.5 font-bold text-xs text-slate-100 bg-slate-800 border border-white/10 hover:border-violet-500/40 hover:bg-slate-750 rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
-                  title="Windows Doppelklick-Datei"
+                  title={language === 'de' ? 'Windows Doppelklick-Datei' : 'Windows double-click script'}
                 >
                   <Terminal className="w-4 h-4 text-amber-400" />
-                  <span>⚡ 1-Klick Datei (.bat)</span>
+                  <span>{t('multidiscModal.btnDownloadBat')}</span>
                 </button>
               </div>
             )}
@@ -254,7 +276,9 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
               onClick={() => setShowAdvancedScripts(!showAdvancedScripts)}
               className="text-slate-400 hover:text-slate-200 font-medium underline decoration-slate-600 cursor-pointer"
             >
-              {showAdvancedScripts ? '▲ Manuelle Skripte verbergen' : '▼ Manuelle Skripte anzeigen (PowerShell / Linux Bash)'}
+              {showAdvancedScripts 
+                ? (language === 'de' ? '▲ Manuelle Skripte verbergen' : '▲ Hide manual scripts') 
+                : (language === 'de' ? '▼ Manuelle Skripte anzeigen (PowerShell / Linux Bash)' : '▼ Show manual scripts (PowerShell / Linux Bash)')}
             </button>
           </div>
 
@@ -262,7 +286,7 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
             <div className="mt-2.5 p-3 rounded-xl bg-slate-950/60 border border-white/10 flex flex-wrap items-center gap-2 text-xs animate-in fade-in duration-150">
               <span className="font-semibold text-slate-300 flex items-center gap-1.5">
                 <Download className="w-3.5 h-3.5 text-slate-400" />
-                Manuelle Skripte:
+                {language === 'de' ? 'Manuelle Skripte:' : 'Manual Scripts:'}
               </span>
 
               <button
@@ -290,7 +314,11 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
         {isApplyingDirect && directProgress && (
           <div className="px-6 py-3 bg-emerald-950/60 border-b border-emerald-500/30 text-xs text-emerald-300">
             <div className="flex items-center justify-between font-bold mb-1">
-              <span>Organisiere Spiel {directProgress.current} von {directProgress.total}: {directProgress.title}</span>
+              <span>
+                {language === 'de' 
+                  ? `Organisiere Spiel ${directProgress.current} von ${directProgress.total}: ${directProgress.title}`
+                  : `Organizing game ${directProgress.current} of ${directProgress.total}: ${directProgress.title}`}
+              </span>
               <span>{Math.round((directProgress.current / directProgress.total) * 100)}%</span>
             </div>
             <div className="w-full bg-emerald-950 h-2 rounded-full overflow-hidden border border-emerald-500/30">
@@ -335,12 +363,12 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
           {/* Left Column: List of Multi-Disc Games */}
           <div className="border-r border-white/10 overflow-y-auto max-h-[48vh] p-3 space-y-1.5 bg-slate-950/60">
             <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-1 py-0.5">
-              Erkannte Multi-Disk Spiele ({multiDiscSets.length})
+              {language === 'de' ? `Erkannte Multi-Disk Spiele (${multiDiscSets.length})` : `Detected Multi-Disc Games (${multiDiscSets.length})`}
             </div>
 
             {multiDiscSets.length === 0 ? (
               <div className="p-8 text-center text-slate-500 text-xs">
-                Keine Multi-Disk Spiele in dieser Sammlung gefunden.
+                {language === 'de' ? 'Keine Multi-Disk Spiele in dieser Sammlung gefunden.' : 'No multi-disc games found in this collection.'}
               </div>
             ) : (
               multiDiscSets.map((set) => {
@@ -380,7 +408,7 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
                   <div>
                     <h3 className="text-sm font-bold text-white">{currentSet.gameTitle}</h3>
                     <p className="text-slate-400 mt-0.5">
-                      Zielordner:{' '}
+                      {language === 'de' ? 'Zielordner:' : 'Target folder:'}{' '}
                       <span className="font-mono text-slate-200 bg-slate-800 px-1.5 py-0.5 rounded border border-white/10">
                         {currentSet.targetFolder}/{useSubfolders ? `${currentSet.gameTitle}/` : ''}
                       </span>
@@ -393,15 +421,15 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
                       onClick={() => handleCopyPlaylist(currentSet)}
                       className="px-2.5 py-1 text-xs font-medium text-slate-200 bg-slate-800 border border-white/10 rounded-md hover:bg-slate-700 transition cursor-pointer"
                     >
-                      {copiedId === currentSet.id ? 'Kopiert!' : 'Playlist kopieren'}
+                      {copiedId === currentSet.id ? (language === 'de' ? 'Kopiert!' : 'Copied!') : (language === 'de' ? 'Playlist kopieren' : 'Copy Playlist')}
                     </button>
                     <button
                       id="download-single-m3u-btn"
                       onClick={() => handleDownloadSingle(currentSet)}
-                      title="Speichert nur diese eine .m3u Datei"
+                      title={language === 'de' ? 'Speichert nur diese eine .m3u Datei' : 'Downloads this single .m3u file'}
                       className="px-2.5 py-1 text-xs font-medium text-slate-200 bg-slate-800 border border-white/10 rounded-md hover:bg-slate-700 transition cursor-pointer"
                     >
-                      .m3u Datei
+                      .m3u {language === 'de' ? 'Datei' : 'File'}
                     </button>
                   </div>
                 </div>
@@ -409,8 +437,10 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
                 {/* Discs list */}
                 <div>
                   <div className="font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
-                    <span>Enthaltene Disketten / Datenträger ({currentSet.discs.length}):</span>
-                    <span className="text-[11px] text-slate-400">Werden in Unterordner verschoben</span>
+                    <span>{t('multidiscModal.discsInSet')} ({currentSet.discs.length}):</span>
+                    <span className="text-[11px] text-slate-400">
+                      {language === 'de' ? 'Werden in Unterordner verschoben' : 'Will be moved to subfolder'}
+                    </span>
                   </div>
                   <div className="space-y-1 font-mono">
                     {currentSet.discs.map((disc, idx) => (
@@ -435,8 +465,10 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
                 {/* Playlist file preview */}
                 <div>
                   <div className="font-semibold text-slate-300 mb-1 flex items-center justify-between">
-                    <span>Generierte Playlist-Datei ({currentSet.m3uFilename}):</span>
-                    <span className="text-[11px] text-slate-400">Liegt im Plattform-Hauptordner</span>
+                    <span>{language === 'de' ? `Generierte Playlist-Datei (${currentSet.m3uFilename}):` : `Generated playlist file (${currentSet.m3uFilename}):`}</span>
+                    <span className="text-[11px] text-slate-400">
+                      {language === 'de' ? 'Liegt im Plattform-Hauptordner' : 'Located in platform root folder'}
+                    </span>
                   </div>
                   <div className="p-3 bg-slate-950 text-emerald-400 font-mono text-xs rounded-xl overflow-x-auto border border-white/10 shadow-inner">
                     <pre className="whitespace-pre">
@@ -447,7 +479,7 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
               </div>
             ) : (
               <div className="h-full flex items-center justify-center text-slate-400 text-xs">
-                Wähle ein Spiel aus der linken Liste aus.
+                {language === 'de' ? 'Wähle ein Spiel aus der linken Liste aus.' : 'Select a game from the list on the left.'}
               </div>
             )}
           </div>
@@ -456,7 +488,12 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
         {/* Footer */}
         <div className="px-6 py-3 border-t border-white/10 bg-slate-950/70 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="text-slate-400 text-[11px] max-w-lg leading-relaxed">
-            <strong className="text-slate-200">Wie RetroArch & Batocera funktionieren:</strong> Die Disketten kommen in den Unterordner, die .m3u liegt davor. So erscheint genau 1 Eintrag im Spiele-Menü und das Disc-Wechseln funktioniert nahtlos.
+            <strong className="text-slate-200">
+              {language === 'de' ? 'Wie RetroArch & Batocera funktionieren:' : 'How RetroArch & Batocera work:'}
+            </strong>{' '}
+            {language === 'de'
+              ? 'Die Disketten kommen in den Unterordner, die .m3u liegt davor. So erscheint genau 1 Eintrag im Spiele-Menü und das Disc-Wechseln funktioniert nahtlos.'
+              : 'Discs are placed in the subfolder, with the .m3u playlist in front. This results in exactly 1 entry in the games menu and seamless disc swapping.'}
           </div>
 
           <div className="flex items-center gap-2">
@@ -469,7 +506,7 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
                 }}
                 className="px-3.5 py-1.5 font-semibold text-slate-200 bg-slate-800 border border-white/10 hover:bg-slate-700 rounded-lg transition cursor-pointer"
               >
-                Komplett-Sammlung organisieren
+                {language === 'de' ? 'Komplett-Sammlung organisieren' : 'Organize Full Collection'}
               </button>
             )}
             <button
@@ -477,7 +514,7 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
               onClick={onClose}
               className="px-4 py-1.5 font-bold text-white bg-slate-800 hover:bg-slate-700 border border-white/10 rounded-lg transition cursor-pointer"
             >
-              Schließen
+              {language === 'de' ? 'Schließen' : 'Close'}
             </button>
           </div>
         </div>
@@ -499,20 +536,36 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
               </span>
               <div>
                 <h3 className="text-sm font-bold text-white">
-                  Multi-Disk Spiele vollautomatisch ordnen?
+                  {language === 'de' ? 'Multi-Disk Spiele vollautomatisch ordnen?' : 'Organize multi-disc games automatically?'}
                 </h3>
                 <p className="text-xs text-slate-300">
-                  {multiDiscSets.length} Spiele mit insgesamt {totalDiscsCount} Disketten
+                  {language === 'de' 
+                    ? `${multiDiscSets.length} Spiele mit insgesamt ${totalDiscsCount} Disketten` 
+                    : `${multiDiscSets.length} games with ${totalDiscsCount} total discs`}
                 </p>
               </div>
             </div>
 
             <div className="p-3.5 bg-slate-950/40 rounded-xl border border-white/10 text-xs space-y-2 text-slate-300">
-              <p className="font-semibold text-white">Was jetzt direkt auf deiner Festplatte passiert:</p>
+              <p className="font-semibold text-white">
+                {language === 'de' ? 'Was jetzt direkt auf deiner Festplatte passiert:' : 'What will happen directly on your storage:'}
+              </p>
               <ul className="space-y-1.5 list-disc pl-4 text-slate-300">
-                <li>Für jedes Spiel wird automatisch ein eigener Unterordner angelegt (z. B. <code className="text-slate-100 bg-slate-900/60 px-1 py-0.5 rounded">Commodore Amiga/Secret of Monkey Island/</code>).</li>
-                <li>Alle zugehörigen Disketten (Disk 1, Disk 2...) werden dorthin verschoben.</li>
-                <li>Die fertige <code className="text-slate-100 bg-slate-900/60 px-1 py-0.5 rounded">.m3u</code> Playlist wird im Systemordner angelegt.</li>
+                <li>
+                  {language === 'de'
+                    ? <>Für jedes Spiel wird automatisch ein eigener Unterordner angelegt (z. B. <code className="text-slate-100 bg-slate-900/60 px-1 py-0.5 rounded">Commodore Amiga/Secret of Monkey Island/</code>).</>
+                    : <>A dedicated subfolder is created for each game (e.g. <code className="text-slate-100 bg-slate-900/60 px-1 py-0.5 rounded">Commodore Amiga/Secret of Monkey Island/</code>).</>}
+                </li>
+                <li>
+                  {language === 'de'
+                    ? 'Alle zugehörigen Disketten (Disk 1, Disk 2...) werden dorthin verschoben.'
+                    : 'All associated discs (Disk 1, Disk 2...) are moved inside.'}
+                </li>
+                <li>
+                  {language === 'de'
+                    ? <>Die fertige <code className="text-slate-100 bg-slate-900/60 px-1 py-0.5 rounded">.m3u</code> Playlist wird im Systemordner angelegt.</>
+                    : <>The ready-to-use <code className="text-slate-100 bg-slate-900/60 px-1 py-0.5 rounded">.m3u</code> playlist is generated in the system directory.</>}
+                </li>
               </ul>
             </div>
 
@@ -522,14 +575,14 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
                 onClick={() => setShowConfirmModal(false)}
                 className="px-4 py-2 text-xs font-semibold text-slate-300 bg-slate-900/50 border border-white/15 hover:bg-slate-800 rounded-xl backdrop-blur-xs transition cursor-pointer"
               >
-                Abbrechen
+                {t('confirm.cancel')}
               </button>
               <button
                 type="button"
                 onClick={handleExecuteDirectAll}
-                className="px-4 py-2 text-xs font-bold text-white bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-xl transition cursor-pointer shadow-md shadow-emerald-900/30"
+                className="px-4 py-2 text-xs font-bold text-white bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-fuchsia-500 rounded-xl transition cursor-pointer shadow-md shadow-emerald-900/30"
               >
-                Ja, jetzt vollautomatisch ordnen
+                {language === 'de' ? 'Ja, jetzt vollautomatisch ordnen' : 'Yes, organize automatically now'}
               </button>
             </div>
           </div>
@@ -538,3 +591,4 @@ export const MultiDiscModal: React.FC<MultiDiscModalProps> = ({
     </div>
   );
 };
+

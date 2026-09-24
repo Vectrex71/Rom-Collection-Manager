@@ -23,6 +23,7 @@ import {
 import { RomFile } from '../types';
 import { deleteRomDirect, moveOrRenameRomDirect } from '../utils/fileSystem';
 import { downloadScriptFile } from '../utils/multiDiscManager';
+import { useTranslation } from '../i18n';
 
 interface SideFileCleanupModalProps {
   isOpen: boolean;
@@ -41,6 +42,7 @@ export const SideFileCleanupModal: React.FC<SideFileCleanupModalProps> = ({
   rootDirectoryHandle,
   onSnapshotCreated,
 }) => {
+  const { t, language } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<SideFileCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -141,7 +143,12 @@ export const SideFileCleanupModal: React.FC<SideFileCleanupModalProps> = ({
     }
 
     if (onSnapshotCreated && rollbackItems.length > 0) {
-      onSnapshotCreated(`Begleitdateien sichern (${rollbackItems.length} Dateien)`, rollbackItems);
+      onSnapshotCreated(
+        language === 'de'
+          ? `Begleitdateien sichern (${rollbackItems.length} Dateien)`
+          : `Backup side-files (${rollbackItems.length} files)`,
+        rollbackItems
+      );
     }
 
     // Update in-memory roms: change path to _SideFiles_Backup
@@ -165,13 +172,16 @@ export const SideFileCleanupModal: React.FC<SideFileCleanupModalProps> = ({
   // Execution: Permanent Delete
   const handleExecuteDelete = async () => {
     if (selectedItems.length === 0) return;
-    if (
-      !window.confirm(
-        `Möchtest du wirklich ${selectedItems.length} Begleit- und Cache-Dateien (${formatBytes(
-          totalSelectedBytes
-        )}) unwiderruflich löschen?`
-      )
-    ) {
+    const confirmMsg =
+      language === 'de'
+        ? `Möchtest du wirklich ${selectedItems.length} Begleit- und Cache-Dateien (${formatBytes(
+            totalSelectedBytes
+          )}) unwiderruflich löschen?`
+        : `Do you really want to permanently delete ${selectedItems.length} side and cache files (${formatBytes(
+            totalSelectedBytes
+          )})?`;
+
+    if (!window.confirm(confirmMsg)) {
       return;
     }
 
@@ -234,13 +244,15 @@ export const SideFileCleanupModal: React.FC<SideFileCleanupModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-bold text-white flex items-center gap-2">
-                Begleit- & Mülldateien bereinigen (Side-files)
+                {language === 'de' ? 'Begleit- & Mülldateien bereinigen (Side-files)' : 'Clean Up Side & Junk Files'}
                 <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                  {detectedSideFiles.length} gefunden
+                  {detectedSideFiles.length} {language === 'de' ? 'gefunden' : 'found'}
                 </span>
               </h2>
               <p className="text-xs text-slate-400">
-                Entferne überflüssige .nfo, .txt, .url, verwaiste .cue und Thumbnail-Caches ohne Spielverlust
+                {language === 'de'
+                  ? 'Entferne überflüssige .nfo, .txt, .url, verwaiste .cue und Thumbnail-Caches ohne Spielverlust'
+                  : 'Remove redundant .nfo, .txt, .url, orphaned .cue and thumbnail caches safely'}
               </p>
             </div>
           </div>
@@ -263,7 +275,7 @@ export const SideFileCleanupModal: React.FC<SideFileCleanupModalProps> = ({
                   : 'bg-slate-800/60 text-slate-400 hover:text-slate-200'
               }`}
             >
-              Alle ({detectedSideFiles.length})
+              {language === 'de' ? 'Alle' : 'All'} ({detectedSideFiles.length})
             </button>
             <button
               onClick={() => setSelectedCategory('nfo')}
@@ -303,7 +315,7 @@ export const SideFileCleanupModal: React.FC<SideFileCleanupModalProps> = ({
                   : 'bg-slate-800/60 text-slate-400 hover:text-slate-200'
               }`}
             >
-              Verwaiste .cue ({detectedSideFiles.filter((f) => f.category === 'orphaned_cue').length})
+              {language === 'de' ? 'Verwaiste .cue' : 'Orphaned .cue'} ({detectedSideFiles.filter((f) => f.category === 'orphaned_cue').length})
             </button>
             <button
               onClick={() => setSelectedCategory('system_cache')}
@@ -313,14 +325,14 @@ export const SideFileCleanupModal: React.FC<SideFileCleanupModalProps> = ({
                   : 'bg-slate-800/60 text-slate-400 hover:text-slate-200'
               }`}
             >
-              System-Cache ({detectedSideFiles.filter((f) => f.category === 'system_cache').length})
+              {language === 'de' ? 'System-Cache' : 'System Cache'} ({detectedSideFiles.filter((f) => f.category === 'system_cache').length})
             </button>
           </div>
 
           <div className="flex items-center gap-2 text-xs">
             <input
               type="text"
-              placeholder="Suchen..."
+              placeholder={language === 'de' ? 'Suchen...' : 'Search...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="px-3 py-1 bg-slate-900/60 border border-white/10 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
@@ -329,7 +341,7 @@ export const SideFileCleanupModal: React.FC<SideFileCleanupModalProps> = ({
               onClick={() => handleToggleSelectAll(selectedIds.size < detectedSideFiles.length)}
               className="px-2.5 py-1 rounded-lg font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 transition cursor-pointer"
             >
-              {selectedIds.size === detectedSideFiles.length ? 'Keine' : 'Alle'}
+              {selectedIds.size === detectedSideFiles.length ? (language === 'de' ? 'Keine' : 'None') : (language === 'de' ? 'Alle' : 'All')}
             </button>
           </div>
         </div>
@@ -341,14 +353,18 @@ export const SideFileCleanupModal: React.FC<SideFileCleanupModalProps> = ({
               <div className="w-12 h-12 rounded-2xl bg-emerald-950/60 text-emerald-400 border border-emerald-500/30 mx-auto flex items-center justify-center">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-white">Alles blitzsauber!</h3>
+              <h3 className="text-base font-bold text-white">
+                {language === 'de' ? 'Alles blitzsauber!' : 'Completely clean!'}
+              </h3>
               <p className="text-xs text-slate-400 max-w-md mx-auto">
-                In deiner Sammlung wurden keine überflüssigen .nfo, .url, verwaisten .cue oder Cache-Dateien gefunden.
+                {language === 'de'
+                  ? 'In deiner Sammlung wurden keine überflüssigen .nfo, .url, verwaisten .cue oder Cache-Dateien gefunden.'
+                  : 'No redundant .nfo, .url, orphaned .cue or cache files were found in your collection.'}
               </p>
             </div>
           ) : filteredItems.length === 0 ? (
             <div className="py-12 text-center text-xs text-slate-400">
-              Keine Begleitdateien passend zu den aktuellen Filtern.
+              {language === 'de' ? 'Keine Begleitdateien passend zu den aktuellen Filtern.' : 'No side files matching current filters.'}
             </div>
           ) : (
             <div className="space-y-1.5">
@@ -405,7 +421,7 @@ export const SideFileCleanupModal: React.FC<SideFileCleanupModalProps> = ({
           <div className="flex items-center gap-2 text-xs text-slate-400">
             <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>
-              <strong>{selectedItems.length}</strong> von {detectedSideFiles.length} ausgewählt (
+              <strong>{selectedItems.length}</strong> {language === 'de' ? 'von' : 'of'} {detectedSideFiles.length} {language === 'de' ? 'ausgewählt' : 'selected'} (
               {formatBytes(totalSelectedBytes)})
             </span>
           </div>
@@ -419,7 +435,7 @@ export const SideFileCleanupModal: React.FC<SideFileCleanupModalProps> = ({
               }}
               disabled={selectedItems.length === 0}
               className="px-3 py-2 rounded-xl text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 transition cursor-pointer flex items-center gap-1.5 disabled:opacity-40"
-              title="Windows .bat Skript herunterladen"
+              title={language === 'de' ? 'Windows .bat Skript herunterladen' : 'Download Windows .bat script'}
             >
               <Download className="w-3.5 h-3.5" />
               <span>Batch (.bat)</span>
@@ -432,7 +448,11 @@ export const SideFileCleanupModal: React.FC<SideFileCleanupModalProps> = ({
               className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white shadow-md shadow-amber-900/30 transition cursor-pointer flex items-center gap-1.5 disabled:opacity-40"
             >
               <FolderArchive className="w-3.5 h-3.5" />
-              <span>In "_SideFiles_Backup" sichern ({selectedItems.length})</span>
+              <span>
+                {language === 'de' 
+                  ? `In "_SideFiles_Backup" sichern (${selectedItems.length})` 
+                  : `Backup to "_SideFiles_Backup" (${selectedItems.length})`}
+              </span>
             </button>
 
             {/* Permanent Delete Option */}
@@ -442,7 +462,7 @@ export const SideFileCleanupModal: React.FC<SideFileCleanupModalProps> = ({
               className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-900/30 transition cursor-pointer flex items-center gap-1.5 disabled:opacity-40"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              <span>Endgültig löschen</span>
+              <span>{language === 'de' ? 'Endgültig löschen' : 'Permanently delete'}</span>
             </button>
           </div>
         </div>

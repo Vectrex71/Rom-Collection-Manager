@@ -2,6 +2,7 @@ import React from 'react';
 import { Search, X } from 'lucide-react';
 import { PlatformCode, ScanFilters } from '../types';
 import { PLATFORMS } from '../data/platformsData';
+import { useTranslation } from '../i18n';
 
 interface FilterBarProps {
   filters: ScanFilters;
@@ -23,6 +24,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   onFilterChange,
   counts,
 }) => {
+  const { t } = useTranslation();
+
   const setViewMode = (mode: ScanFilters['viewMode']) => {
     onFilterChange({ ...filters, viewMode: mode });
   };
@@ -63,7 +66,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                   : 'text-slate-300 hover:text-white hover:bg-slate-800/60 font-medium'
               }`}
             >
-              Alle ({counts.total})
+              {t('filterBar.all')} ({counts.total})
             </button>
 
             <button
@@ -75,7 +78,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                   : 'text-rose-300 hover:text-rose-200 hover:bg-rose-950/40 font-medium'
               }`}
             >
-              Duplikate ({counts.duplicates})
+              {t('filterBar.duplicates')} ({counts.duplicates})
             </button>
 
             {counts.junk > 0 && (
@@ -88,7 +91,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     : 'text-rose-300 bg-rose-950/40 hover:bg-rose-900/50 font-medium border border-rose-500/30'
                 }`}
               >
-                Müll & Cache ({counts.junk})
+                {t('filterBar.junk')} ({counts.junk})
               </button>
             )}
 
@@ -101,7 +104,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                   : 'text-fuchsia-300 hover:text-fuchsia-200 hover:bg-fuchsia-950/40 font-medium'
               }`}
             >
-              Multi-Disk ({counts.multidisc})
+              {t('filterBar.multidisc')} ({counts.multidisc})
             </button>
 
             {counts.translationsAndHacks !== undefined && counts.translationsAndHacks > 0 && (
@@ -114,7 +117,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     : 'text-cyan-300 hover:text-cyan-200 hover:bg-cyan-950/40 font-medium'
                 }`}
               >
-                Hacks & Patches ({counts.translationsAndHacks})
+                {t('filterBar.translationsAndHacks')} ({counts.translationsAndHacks})
               </button>
             )}
 
@@ -127,7 +130,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                   : 'text-amber-300 hover:text-amber-200 hover:bg-amber-950/40 font-medium'
               }`}
             >
-              Top 200 ({counts.top200})
+              {t('filterBar.top200')} ({counts.top200})
             </button>
 
             <button
@@ -139,7 +142,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                   : 'text-violet-300 hover:text-violet-200 hover:bg-violet-950/40 font-medium'
               }`}
             >
-              Fehlende ({counts.missingTop200})
+              {t('filterBar.missingTop200')} ({counts.missingTop200})
             </button>
 
             <button
@@ -151,7 +154,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                   : 'text-teal-300 hover:text-teal-200 hover:bg-teal-950/40 font-medium'
               }`}
             >
-              Unorganisiert ({counts.unorganized})
+              {t('filterBar.unorganized')} ({counts.unorganized})
             </button>
           </div>
 
@@ -163,7 +166,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               type="text"
               value={filters.searchQuery}
               onChange={(e) => onFilterChange({ ...filters, searchQuery: e.target.value })}
-              placeholder="Suchen..."
+              placeholder={t('filterBar.searchPlaceholder')}
               className="w-full bg-slate-900/40 border border-white/15 rounded-xl pl-8 pr-8 py-1.5 text-xs text-white placeholder-slate-400 focus:bg-slate-900/60 focus:outline-hidden focus:border-violet-400 backdrop-blur-md transition"
             />
             {filters.searchQuery && (
@@ -205,7 +208,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               onClick={clearAllPlatformFilters}
               className="ml-auto text-[11px] text-amber-300 hover:text-amber-200 font-medium whitespace-nowrap cursor-pointer px-2 py-0.5 rounded bg-slate-900/60 border border-white/15 backdrop-blur-xs"
             >
-              Zurücksetzen
+              {t('filterBar.clearFilter')}
             </button>
           )}
         </div>
@@ -213,3 +216,4 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     </div>
   );
 };
+

@@ -3,6 +3,7 @@ import { X, ArrowRight, Search, ShieldCheck, Gamepad2, FileCheck, Check, Sparkle
 import { OrganizeActionItem, RomFile, MultiDiscSet, HandheldPresetId } from '../types';
 import { generatePowerShellScript, generateBashScript, generateBatchScript } from '../utils/scriptGenerator';
 import { HANDHELD_PRESETS } from '../utils/handheldPresets';
+import { useTranslation } from '../i18n';
 
 interface OrganizeModalProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
   isExecuting,
   executionProgress,
 }) => {
+  const { t, language } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'rename_only' | 'move_only' | 'rename_and_move'>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -128,13 +130,13 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-white">Trockenlauf & Vorschau</h3>
+                <h3 className="text-sm font-bold text-white">{t('organizeModal.title')}</h3>
                 <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">
-                  Simulation aktiv
+                  {t('organizeModal.simulationBadge')}
                 </span>
               </div>
               <p className="text-xs text-slate-300">
-                Prüfe alle geplanten Umbenennungen und Zielordner vor der eigentlichen Durchführung.
+                {t('organizeModal.subtitle')}
               </p>
             </div>
           </div>
@@ -152,7 +154,7 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
           <div className="px-5 py-2.5 bg-slate-900/40 border-b border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 text-slate-300">
               <Gamepad2 className="w-4 h-4 text-amber-300 shrink-0" />
-              <span className="font-semibold">Zielsystem / Handheld-Preset:</span>
+              <span className="font-semibold">{t('organizeModal.presetLabel')}</span>
             </div>
 
             <div className="flex items-center gap-1.5 flex-wrap">
@@ -184,12 +186,12 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
             <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>
               {collisionCount === 0
-                ? 'Simulation bestanden: Keine Namenskollisionen im Zielverzeichnis.'
-                : `Hinweis: ${collisionCount} gleichnamige Zieldateien erkannt (wird automatisch als _1 durchnummeriert).`}
+                ? (language === 'de' ? 'Simulation bestanden: Keine Namenskollisionen im Zielverzeichnis.' : 'Simulation passed: No filename collisions in target folder.')
+                : (language === 'de' ? `Hinweis: ${collisionCount} gleichnamige Zieldateien erkannt (wird automatisch als _1 durchnummeriert).` : `Notice: ${collisionCount} identically named target files detected (will be numbered with _1).`)}
             </span>
           </div>
           <span className="text-[11px] font-mono text-emerald-400/80">
-            {selectedCount} von {actions.length} Aktionen ausgewählt
+            {language === 'de' ? `${selectedCount} von ${actions.length} Aktionen ausgewählt` : `${selectedCount} of ${actions.length} actions selected`}
           </span>
         </div>
 
@@ -201,7 +203,7 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
               onClick={() => onToggleAllActions(selectedCount !== actions.length)}
               className="text-violet-400 hover:text-violet-300 font-bold cursor-pointer"
             >
-              {selectedCount === actions.length ? 'Alle abwählen' : 'Alle auswählen'}
+              {selectedCount === actions.length ? (language === 'de' ? 'Alle abwählen' : 'Deselect all') : (language === 'de' ? 'Alle auswählen' : 'Select all')}
             </button>
             <span className="text-slate-600">•</span>
             <div className="inline-flex rounded-lg p-0.5 bg-slate-900/60 border border-white/10 text-[11px]">
@@ -212,7 +214,7 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
                   filterType === 'all' ? 'bg-violet-600 text-white font-bold' : 'text-slate-400 hover:text-white'
                 }`}
               >
-                Alle ({actions.length})
+                {language === 'de' ? `Alle (${actions.length})` : `All (${actions.length})`}
               </button>
               <button
                 type="button"
@@ -221,7 +223,7 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
                   filterType === 'rename_only' ? 'bg-violet-600 text-white font-bold' : 'text-slate-400 hover:text-white'
                 }`}
               >
-                Nur Umbenennen
+                {language === 'de' ? 'Nur Umbenennen' : 'Rename Only'}
               </button>
               <button
                 type="button"
@@ -230,7 +232,7 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
                   filterType === 'move_only' ? 'bg-violet-600 text-white font-bold' : 'text-slate-400 hover:text-white'
                 }`}
               >
-                Nur Verschieben
+                {language === 'de' ? 'Nur Verschieben' : 'Move Only'}
               </button>
             </div>
           </div>
@@ -242,7 +244,7 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="In Vorschau suchen..."
+              placeholder={language === 'de' ? 'In Vorschau suchen...' : 'Search preview...'}
               className="w-full bg-slate-900/60 border border-white/10 rounded-lg pl-8 pr-2.5 py-1 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
             />
             {searchQuery && (
@@ -260,9 +262,9 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
         {isExecuting && executionProgress && (
           <div className="p-3 bg-violet-950/60 border-b border-violet-500/30">
             <div className="flex items-center justify-between text-xs text-violet-300 font-bold mb-1">
-              <span>Organisiere Dateien...</span>
+              <span>{language === 'de' ? 'Organisiere Dateien...' : 'Organizing files...'}</span>
               <span>
-                {executionProgress.current} von {executionProgress.total}
+                {executionProgress.current} {language === 'de' ? 'von' : 'of'} {executionProgress.total}
               </span>
             </div>
             <div className="w-full bg-violet-950 rounded-full h-1.5 overflow-hidden border border-violet-500/30">
@@ -285,7 +287,9 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
         {totalPages > 1 && (
           <div className="px-5 py-2 bg-slate-900/60 border-b border-white/10 flex items-center justify-between text-xs text-slate-300">
             <span className="text-[11px] text-slate-400">
-              Zeige {(safeCurrentPage - 1) * PAGE_SIZE + 1}–{Math.min(safeCurrentPage * PAGE_SIZE, filteredActions.length)} von {filteredActions.length} Aktionen
+              {language === 'de' 
+                ? `Zeige ${(safeCurrentPage - 1) * PAGE_SIZE + 1}–${Math.min(safeCurrentPage * PAGE_SIZE, filteredActions.length)} von ${filteredActions.length} Aktionen`
+                : `Showing ${(safeCurrentPage - 1) * PAGE_SIZE + 1}–${Math.min(safeCurrentPage * PAGE_SIZE, filteredActions.length)} of ${filteredActions.length} actions`}
             </span>
             <div className="flex items-center gap-1.5">
               <button
@@ -294,7 +298,7 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold cursor-pointer"
               >
-                ◀ Zurück
+                ◀ {language === 'de' ? 'Zurück' : 'Back'}
               </button>
               <span className="font-mono text-[11px] text-violet-300 px-1">
                 {safeCurrentPage} / {totalPages}
@@ -305,7 +309,7 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold cursor-pointer"
               >
-                Weiter ▶
+                {language === 'de' ? 'Weiter' : 'Next'} ▶
               </button>
             </div>
           </div>
@@ -331,12 +335,12 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
                 <div className="min-w-0 flex-1">
                   <div className="font-mono text-slate-300 truncate">{act.currentPath}</div>
                   <div className="text-[10px] text-slate-500 flex items-center gap-2 mt-0.5">
-                    <span>Aktueller Pfad</span>
+                    <span>{language === 'de' ? 'Aktueller Pfad' : 'Current Path'}</span>
                     <span>•</span>
                     <span className="text-slate-400">{(act.rom.size / (1024 * 1024)).toFixed(1)} MB</span>
                     {act.rom.isArcadeRom && (
                       <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-950/70 text-amber-300 border border-amber-500/40">
-                        🛡️ MAME-Schutz (Dateiname gesichert)
+                        🛡️ {language === 'de' ? 'MAME-Schutz (Dateiname gesichert)' : 'MAME Protected (Filename locked)'}
                       </span>
                     )}
                   </div>
@@ -351,20 +355,20 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
                     {act.targetFolder ? `/${act.targetFolder}/${act.cleanFilename}` : `/${act.cleanFilename}`}
                   </div>
                   <div className="text-[10px] text-emerald-400 font-bold flex items-center gap-2 mt-0.5">
-                    <span>Zielpfad</span>
+                    <span>{language === 'de' ? 'Zielpfad' : 'Target Path'}</span>
                     {act.type === 'rename_and_move' && (
                       <span className="text-[9px] bg-violet-500/20 text-violet-300 px-1.5 py-0.2 rounded font-normal">
-                        Umbenennen + Verschieben
+                        {language === 'de' ? 'Umbenennen + Verschieben' : 'Rename + Move'}
                       </span>
                     )}
                     {act.type === 'rename_only' && (
                       <span className="text-[9px] bg-cyan-500/20 text-cyan-300 px-1.5 py-0.2 rounded font-normal">
-                        Nur Umbenennen
+                        {language === 'de' ? 'Nur Umbenennen' : 'Rename Only'}
                       </span>
                     )}
                     {act.type === 'move_only' && (
                       <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded font-normal">
-                        Nur Verschieben
+                        {language === 'de' ? 'Nur Verschieben' : 'Move Only'}
                       </span>
                     )}
                   </div>
@@ -374,17 +378,17 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
               <div className="shrink-0 self-start sm:self-center">
                 {act.status === 'done' && (
                   <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-300 border border-emerald-500/30">
-                    Erledigt
+                    {language === 'de' ? 'Erledigt' : 'Done'}
                   </span>
                 )}
                 {act.status === 'failed' && (
                   <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-950/60 text-rose-300 border border-rose-500/30">
-                    Fehler
+                    {language === 'de' ? 'Fehler' : 'Failed'}
                   </span>
                 )}
                 {act.status === 'pending' && (
                   <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-300 border border-white/10">
-                    Bereit
+                    {language === 'de' ? 'Bereit' : 'Ready'}
                   </span>
                 )}
               </div>
@@ -394,8 +398,8 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
           {filteredActions.length === 0 && (
             <div className="text-center py-12 text-slate-400 text-xs">
               {searchQuery
-                ? 'Keine ROMs für diesen Suchbegriff gefunden.'
-                : 'Alle ROMs entsprechen bereits dem gewählten Schema.'}
+                ? (language === 'de' ? 'Keine ROMs für diesen Suchbegriff gefunden.' : 'No ROMs matched your search query.')
+                : (language === 'de' ? 'Alle ROMs entsprechen bereits dem gewählten Schema.' : 'All ROMs already match the target structure.')}
             </div>
           )}
         </div>
@@ -407,7 +411,7 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
               id="btn-download-batch"
               onClick={handleDownloadBatch}
               className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-500/30 shadow-xs transition cursor-pointer"
-              title="Windows Doppelklick-Skript: Keine PowerShell-Rechte nötig!"
+              title={language === 'de' ? 'Windows Doppelklick-Skript: Keine PowerShell-Rechte nötig!' : 'Windows double-click script: No PowerShell privileges needed!'}
             >
               ⚡ Windows Batch (.bat)
             </button>
@@ -434,7 +438,7 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
               onClick={onClose}
               className="px-3.5 py-1.5 rounded-lg font-medium bg-slate-800 text-slate-200 border border-white/10 hover:bg-slate-700 transition cursor-pointer"
             >
-              Abbrechen
+              {t('confirm.cancel')}
             </button>
 
             <button
@@ -444,7 +448,11 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
               className="px-4 py-1.5 rounded-lg text-xs font-bold bg-linear-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 disabled:opacity-50 text-white shadow-md shadow-violet-900/30 transition cursor-pointer flex items-center gap-1.5"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>{isExecuting ? 'Wird ausgeführt...' : `Plan jetzt ausführen (${selectedCount})`}</span>
+              <span>
+                {isExecuting 
+                  ? (language === 'de' ? 'Wird ausgeführt...' : 'Executing...') 
+                  : (language === 'de' ? `Plan jetzt ausführen (${selectedCount})` : `Execute Plan Now (${selectedCount})`)}
+              </span>
             </button>
           </div>
         </div>
@@ -452,3 +460,4 @@ export const OrganizeModal: React.FC<OrganizeModalProps> = ({
     </div>
   );
 };
+

@@ -3,6 +3,7 @@ import { CheckCircle2, AlertTriangle, Folder, HelpCircle, ArrowRight, ShieldChec
 import { PlatformCode, RomFile, HandheldPresetId, RegionPreference } from '../types';
 import { PLATFORMS, getPlatformMetadata } from '../data/platformsData';
 import { HANDHELD_PRESETS, getTargetFolderForPlatform } from '../utils/handheldPresets';
+import { useTranslation } from '../i18n';
 
 export interface DetectedSystemGroup {
   originalPlatform: PlatformCode;
@@ -37,6 +38,7 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
   onConfirm,
   onCancel,
 }) => {
+  const { t, language } = useTranslation();
   const [keepInRootFolder, setKeepInRootFolder] = useState<boolean>(true);
   const [selectedPreset, setSelectedPreset] = useState<HandheldPresetId>(initialPreset);
   const [regionPref, setRegionPref] = useState<RegionPreference>(initialRegionPref);
@@ -126,20 +128,25 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
             </div>
             <div>
               <h2 className="text-base font-bold text-white flex items-center gap-2">
-                Ordner-Inhalt & Plattform-Konfiguration
+                {t('systemVerification.title')}
               </h2>
               <p className="text-xs text-slate-300 flex items-center gap-1.5 mt-0.5">
                 <Folder className="w-3.5 h-3.5 text-amber-400" />
-                Ordner: <span className="font-semibold text-white">{folderName || 'Ausgewählter Ordner'}</span>
+                {t('systemVerification.folderLabel')}{' '}
+                <span className="font-semibold text-white">
+                  {folderName || t('systemVerification.selectedFolder')}
+                </span>
                 <span className="text-slate-500">•</span>
-                <span className="text-violet-300 font-medium">{roms.length} ROMs eingelesen</span>
+                <span className="text-violet-300 font-medium">
+                  {t('systemVerification.scannedCount', { count: roms.length })}
+                </span>
               </p>
             </div>
           </div>
 
           <button
             onClick={onCancel}
-            title="Abbrechen & anderen Ordner wählen"
+            title={t('systemVerification.cancelTitle')}
             className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -150,7 +157,10 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
         <div className="px-6 py-3 bg-indigo-950/30 border-b border-indigo-500/20 flex items-start gap-3 text-xs text-indigo-200">
           <HelpCircle className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
           <div>
-            <span className="font-semibold text-indigo-100">Volle Kontrolle & Transparenz:</span> Prüfe kurz die erkannten Plattformen und wähle dein bevorzugtes Handheld- oder Ordner-Schema (z. B. Batocera, OnionOS oder Standard).
+            <span className="font-semibold text-indigo-100">
+              {t('systemVerification.bannerTitle')}
+            </span>{' '}
+            {t('systemVerification.bannerDesc')}
           </div>
         </div>
 
@@ -161,7 +171,7 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold text-slate-200 flex items-center gap-2">
                 <Gamepad2 className="w-4 h-4 text-violet-400" />
-                Handheld & OS Ziel-Preset:
+                {t('systemVerification.presetTitle')}
               </h4>
               <span className="text-[11px] font-mono text-slate-400">
                 {HANDHELD_PRESETS.find((p) => p.id === selectedPreset)?.exampleFolder}
@@ -195,7 +205,7 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold text-slate-200 flex items-center gap-2">
                 <Globe className="w-4 h-4 text-emerald-400" />
-                1G1R Regions-Präferenz (Bevorzugte Spielversion):
+                {t('systemVerification.regionTitle')}
               </h4>
             </div>
 
@@ -209,8 +219,12 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
                   className="text-emerald-500 focus:ring-emerald-500"
                 />
                 <div>
-                  <span className="font-bold text-white block">🇩🇪 Deutsch bevorzugt</span>
-                  <span className="text-[10px] text-slate-400 block">Deutschland/Deutsch vor Europa & USA</span>
+                  <span className="font-bold text-white block">
+                    {t('systemVerification.regionGerman')}
+                  </span>
+                  <span className="text-[10px] text-slate-400 block">
+                    {t('systemVerification.regionGermanDesc')}
+                  </span>
                 </div>
               </label>
 
@@ -223,8 +237,12 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
                   className="text-emerald-500 focus:ring-emerald-500"
                 />
                 <div>
-                  <span className="font-bold text-white block">🇪🇺 Europa (Standard)</span>
-                  <span className="text-[10px] text-slate-400 block">PAL / Europa vor USA & Japan</span>
+                  <span className="font-bold text-white block">
+                    {t('systemVerification.regionEurope')}
+                  </span>
+                  <span className="text-[10px] text-slate-400 block">
+                    {t('systemVerification.regionEuropeDesc')}
+                  </span>
                 </div>
               </label>
 
@@ -237,8 +255,12 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
                   className="text-emerald-500 focus:ring-emerald-500"
                 />
                 <div>
-                  <span className="font-bold text-white block">🇺🇸 USA / NTSC</span>
-                  <span className="text-[10px] text-slate-400 block">60Hz USA-Versionen bevorzugt</span>
+                  <span className="font-bold text-white block">
+                    {t('systemVerification.regionUsa')}
+                  </span>
+                  <span className="text-[10px] text-slate-400 block">
+                    {t('systemVerification.regionUsaDesc')}
+                  </span>
                 </div>
               </label>
 
@@ -251,8 +273,12 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
                   className="text-emerald-500 focus:ring-emerald-500"
                 />
                 <div>
-                  <span className="font-bold text-white block">🇯🇵 Japan / NTSC-J</span>
-                  <span className="text-[10px] text-slate-400 block">Original japanische Releases</span>
+                  <span className="font-bold text-white block">
+                    {t('systemVerification.regionJapan')}
+                  </span>
+                  <span className="text-[10px] text-slate-400 block">
+                    {t('systemVerification.regionJapanDesc')}
+                  </span>
                 </div>
               </label>
             </div>
@@ -261,9 +287,11 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
           {/* Quick Action: Assign entire folder to 1 system */}
           <div className="p-3.5 rounded-xl bg-slate-900/40 border border-white/10 flex flex-wrap items-center justify-between gap-3">
             <div className="text-xs">
-              <span className="font-bold text-slate-200">Schnell-Zuweisung:</span>
+              <span className="font-bold text-slate-200">
+                {t('systemVerification.quickAssign')}
+              </span>
               <p className="text-slate-400 text-[11px] mt-0.5">
-                Ist dieser gesamte Ordner eine Sammlung für ein einziges System (z. B. nur Amiga oder nur NES)?
+                {t('systemVerification.quickAssignDesc')}
               </p>
             </div>
 
@@ -278,7 +306,9 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
                 }}
                 className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 border border-white/20 text-white focus:outline-none focus:border-violet-500 cursor-pointer"
               >
-                <option value="">-- Alle Dateien einem System zuweisen --</option>
+                <option value="">
+                  {t('systemVerification.globalOverrideSelect')}
+                </option>
                 {PLATFORMS.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name} ({p.shortCode})
@@ -291,7 +321,7 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
           {/* List of Detected System Groups */}
           <div className="space-y-3">
             <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-              Erkannte Plattform-Gruppen ({initialGroups.length}):
+              {t('systemVerification.detectedGroups', { count: initialGroups.length })}
             </h3>
 
             {initialGroups.map((group) => {
@@ -317,16 +347,19 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
                           {originalMeta ? originalMeta.name : group.originalPlatform}
                         </span>
                         <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-800 border border-white/10 text-slate-300">
-                          {group.count} {group.count === 1 ? 'Datei' : 'Dateien'}
+                          {group.count}{' '}
+                          {group.count === 1
+                            ? t('systemVerification.fileCountSingle')
+                            : t('systemVerification.fileCountPlural')}
                         </span>
                         {group.extensions.length > 0 && (
                           <span className="text-[11px] text-slate-400 font-mono">
-                            Endungen: {group.extensions.slice(0, 4).join(', ')}
+                            {t('systemVerification.extensions')} {group.extensions.slice(0, 4).join(', ')}
                           </span>
                         )}
                         {isModified && (
                           <span className="text-[10px] font-bold text-violet-400 bg-violet-950/60 px-1.5 py-0.5 rounded border border-violet-500/40">
-                            Geändert zu: {currentMeta?.name}
+                            {t('systemVerification.changedTo')} {currentMeta?.name}
                           </span>
                         )}
                       </div>
@@ -334,7 +367,7 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
                       {/* Sample filenames */}
                       {group.samples.length > 0 && (
                         <div className="text-[11px] text-slate-400 font-mono truncate max-w-lg">
-                          <span className="text-slate-500">Beispiele: </span>
+                          <span className="text-slate-500">{t('systemVerification.samples')}{' '}</span>
                           {group.samples.slice(0, 2).join(' • ')}
                         </div>
                       )}
@@ -357,7 +390,9 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
                             {plat.name} ({plat.shortCode})
                           </option>
                         ))}
-                        <option value="OTHER">Sonstige / Nicht zugeordnet (OTHER)</option>
+                        <option value="OTHER">
+                          {t('systemVerification.otherOption')}
+                        </option>
                       </select>
                     </div>
                   </div>
@@ -370,7 +405,7 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
           <div className="p-4 rounded-xl bg-slate-900/50 border border-white/10 space-y-3">
             <h4 className="text-xs font-bold text-slate-200 flex items-center gap-2">
               <Folder className="w-4 h-4 text-violet-400" />
-              Ziel-Ordnerstruktur (Verhindert doppelte Unterordner)
+              {t('systemVerification.targetFolderStructure')}
             </h4>
 
             <div className="space-y-2">
@@ -384,10 +419,18 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
                 />
                 <div className="text-xs">
                   <span className="font-bold text-white block">
-                    Dateien direkt in diesem Ordner belassen (Empfohlen)
+                    {t('systemVerification.keepInFolderTitle')}
                   </span>
                   <span className="text-slate-400 text-[11px] block mt-0.5">
-                    Die Dateien verbleiben direkt im gewählten Ordner <span className="text-white font-mono">„{folderName}“</span>. Es werden <strong>keine doppelten Unterordner</strong> wie <span className="text-amber-300 font-mono">„{folderName}/{folderName}/“</span> erstellt.
+                    {language === 'de' ? (
+                      <>
+                        Die Dateien verbleiben direkt im gewählten Ordner <span className="text-white font-mono">„{folderName}“</span>. Es werden <strong>keine doppelten Unterordner</strong> wie <span className="text-amber-300 font-mono">„{folderName}/{folderName}/“</span> erstellt.
+                      </>
+                    ) : (
+                      <>
+                        Files remain directly inside <span className="text-white font-mono">"{folderName}"</span>. <strong>No duplicate subfolders</strong> like <span className="text-amber-300 font-mono">"{folderName}/{folderName}/"</span> will be created.
+                      </>
+                    )}
                   </span>
                 </div>
               </label>
@@ -402,10 +445,18 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
                 />
                 <div className="text-xs">
                   <span className="font-bold text-white block">
-                    In separate System-Unterordner sortieren
+                    {t('systemVerification.sortSubfoldersTitle')}
                   </span>
                   <span className="text-slate-400 text-[11px] block mt-0.5">
-                    Erstellt Unterordner passend zum gewählten Preset (z. B. <span className="text-white font-mono">„{folderName}/{HANDHELD_PRESETS.find((p) => p.id === selectedPreset)?.exampleFolder}“</span>).
+                    {language === 'de' ? (
+                      <>
+                        Erstellt Unterordner passend zum gewählten Preset (z. B. <span className="text-white font-mono">„{folderName}/{HANDHELD_PRESETS.find((p) => p.id === selectedPreset)?.exampleFolder}“</span>).
+                      </>
+                    ) : (
+                      <>
+                        Creates subfolders according to chosen preset (e.g. <span className="text-white font-mono">"{folderName}/{HANDHELD_PRESETS.find((p) => p.id === selectedPreset)?.exampleFolder}"</span>).
+                      </>
+                    )}
                   </span>
                 </div>
               </label>
@@ -420,7 +471,7 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
             onClick={onCancel}
             className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 transition cursor-pointer"
           >
-            Anderen Ordner wählen
+            {t('systemVerification.btnChooseOther')}
           </button>
 
           <button
@@ -429,7 +480,9 @@ export const SystemVerificationModal: React.FC<SystemVerificationModalProps> = (
             className="px-5 py-2.5 rounded-xl text-xs font-bold bg-linear-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-lg shadow-violet-900/30 flex items-center gap-2 transition cursor-pointer"
           >
             <CheckCircle2 className="w-4 h-4 text-white" />
-            <span>Systeme bestätigen & Sammlung öffnen ({roms.length} ROMs)</span>
+            <span>
+              {t('systemVerification.btnConfirmSystems', { count: roms.length })}
+            </span>
           </button>
         </div>
       </div>

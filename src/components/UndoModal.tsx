@@ -8,6 +8,7 @@ import {
   removeUndoSnapshot,
 } from '../utils/rollbackManager';
 import { triggerFileDownload } from '../utils/exportManager';
+import { useTranslation } from '../i18n';
 
 interface UndoModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export const UndoModal: React.FC<UndoModalProps> = ({
   currentRoms,
   onRomsRestored,
 }) => {
+  const { t, language } = useTranslation();
   const [selectedSnapshotId, setSelectedSnapshotId] = useState<string>(
     snapshots.length > 0 ? snapshots[0].id : ''
   );
@@ -55,7 +57,11 @@ export const UndoModal: React.FC<UndoModalProps> = ({
       );
 
       onRomsRestored(updatedRoms);
-      setSuccessMessage(`${revertedCount} Dateien wurden erfolgreich auf ihren Ursprungszustand zurückgesetzt!`);
+      setSuccessMessage(
+        language === 'de'
+          ? `${revertedCount} Dateien wurden erfolgreich auf ihren Ursprungszustand zurückgesetzt!`
+          : `${revertedCount} files successfully restored to their original state!`
+      );
       // Remove snapshot after successful restore
       removeUndoSnapshot(activeSnapshot.id);
       const remaining = snapshots.filter((s) => s.id !== activeSnapshot.id);
@@ -102,9 +108,13 @@ export const UndoModal: React.FC<UndoModalProps> = ({
               <RotateCcw className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">Änderungen rückgängig machen (Undo / Rollback)</h3>
+              <h3 className="text-sm font-bold text-white">
+                {language === 'de' ? 'Änderungen rückgängig machen (Undo / Rollback)' : 'Undo Changes (Rollback History)'}
+              </h3>
               <p className="text-xs text-slate-300">
-                Stelle Originaldateinamen und ursprüngliche Ordnerpfade jederzeit 1:1 wieder her.
+                {language === 'de' 
+                  ? 'Stelle Originaldateinamen und ursprüngliche Ordnerpfade jederzeit 1:1 wieder her.'
+                  : 'Restore original filenames and folder structures 1:1 anytime.'}
               </p>
             </div>
           </div>
@@ -128,9 +138,9 @@ export const UndoModal: React.FC<UndoModalProps> = ({
           {progress && (
             <div className="p-3 bg-violet-950/60 border border-violet-500/30 rounded-xl space-y-1.5">
               <div className="flex items-center justify-between text-xs text-violet-300 font-bold">
-                <span>Stelle Dateien wieder her...</span>
+                <span>{language === 'de' ? 'Stelle Dateien wieder her...' : 'Restoring files...'}</span>
                 <span>
-                  {progress.current} von {progress.total}
+                  {progress.current} {language === 'de' ? 'von' : 'of'} {progress.total}
                 </span>
               </div>
               <div className="w-full bg-violet-950 rounded-full h-1.5 overflow-hidden">
@@ -146,10 +156,13 @@ export const UndoModal: React.FC<UndoModalProps> = ({
           {snapshots.length === 0 ? (
             <div className="text-center py-12 text-slate-400 space-y-2">
               <div className="text-3xl">🛡️</div>
-              <div className="text-sm font-bold text-slate-200">Noch keine Aktionen protokolliert</div>
+              <div className="text-sm font-bold text-slate-200">
+                {language === 'de' ? 'Noch keine Aktionen protokolliert' : 'No recorded actions yet'}
+              </div>
               <p className="text-xs text-slate-400 max-w-md mx-auto">
-                Sobald du ROMs umbenennst, verschiebst oder Playlists anlegst, wird hier automatisch ein Sicherungspunkt
-                erstellt. So kannst du jeden Schritt per Klick rückgängig machen.
+                {language === 'de'
+                  ? 'Sobald du ROMs umbenennst, verschiebst oder Playlists anlegst, wird hier automatisch ein Sicherungspunkt erstellt. So kannst du jeden Schritt per Klick rückgängig machen.'
+                  : 'As soon as you rename, organize ROMs or generate playlists, an undo snapshot is saved here so you can revert any step with 1 click.'}
               </p>
             </div>
           ) : (
@@ -157,7 +170,9 @@ export const UndoModal: React.FC<UndoModalProps> = ({
               {/* Snapshot selector */}
               <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                  Verfügbare Sicherungspunkte ({snapshots.length}):
+                  {language === 'de' 
+                    ? `Verfügbare Sicherungspunkte (${snapshots.length}):` 
+                    : `Available Snapshots (${snapshots.length}):`}
                 </label>
                 <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                   {snapshots.map((snap) => {
@@ -179,10 +194,12 @@ export const UndoModal: React.FC<UndoModalProps> = ({
                             <div className="text-[10px] text-slate-400 flex items-center gap-2 mt-0.5">
                               <span className="flex items-center gap-1">
                                 <Calendar className="w-3 h-3 text-slate-500" />
-                                {new Date(snap.timestamp).toLocaleTimeString('de-DE')} Uhr
+                                {new Date(snap.timestamp).toLocaleTimeString(language === 'de' ? 'de-DE' : 'en-US')}
                               </span>
                               <span>•</span>
-                              <span>{snap.items.length} betroffene Dateien</span>
+                              <span>
+                                {snap.items.length} {language === 'de' ? 'betroffene Dateien' : 'affected files'}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -194,7 +211,7 @@ export const UndoModal: React.FC<UndoModalProps> = ({
                             handleDeleteSnapshot(snap.id);
                           }}
                           className="p-1 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-slate-800/80 transition"
-                          title="Sicherungspunkt löschen"
+                          title={language === 'de' ? 'Sicherungspunkt löschen' : 'Delete snapshot'}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -208,7 +225,11 @@ export const UndoModal: React.FC<UndoModalProps> = ({
               {activeSnapshot && (
                 <div className="p-4 bg-slate-900/60 rounded-xl border border-white/10 space-y-3">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-white">Dateien in diesem Snapshot ({activeSnapshot.items.length}):</span>
+                    <span className="font-bold text-white">
+                      {language === 'de' 
+                        ? `Dateien in diesem Snapshot (${activeSnapshot.items.length}):` 
+                        : `Files in this snapshot (${activeSnapshot.items.length}):`}
+                    </span>
                     <span className="text-slate-400 font-mono text-[11px]">{activeSnapshot.folderName}</span>
                   </div>
 
@@ -216,13 +237,15 @@ export const UndoModal: React.FC<UndoModalProps> = ({
                     {activeSnapshot.items.slice(0, 50).map((item, idx) => (
                       <div key={idx} className="py-1 flex items-center justify-between gap-2 text-slate-300">
                         <span className="text-rose-400/90 truncate">{item.appliedFilename}</span>
-                        <span className="text-slate-500 text-[10px]">wird zu</span>
+                        <span className="text-slate-500 text-[10px]">
+                          {language === 'de' ? 'wird zu' : 'becomes'}
+                        </span>
                         <span className="text-emerald-400 font-bold truncate text-right">{item.previousFilename}</span>
                       </div>
                     ))}
                     {activeSnapshot.items.length > 50 && (
                       <div className="py-1 text-center text-slate-500 text-[10px]">
-                        + {activeSnapshot.items.length - 50} weitere Dateien
+                        + {activeSnapshot.items.length - 50} {language === 'de' ? 'weitere Dateien' : 'more files'}
                       </div>
                     )}
                   </div>
@@ -241,7 +264,7 @@ export const UndoModal: React.FC<UndoModalProps> = ({
                   type="button"
                   onClick={handleDownloadBatch}
                   className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 transition cursor-pointer flex items-center gap-1.5"
-                  title="Windows Batch (.bat) Skript zum Wiederherstellen herunterladen"
+                  title={language === 'de' ? 'Windows Batch (.bat) Skript zum Wiederherstellen herunterladen' : 'Download Windows Batch (.bat) rollback script'}
                 >
                   <Terminal className="w-3.5 h-3.5 text-amber-300" />
                   <span>Windows (.bat)</span>
@@ -250,7 +273,7 @@ export const UndoModal: React.FC<UndoModalProps> = ({
                   type="button"
                   onClick={handleDownloadBash}
                   className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 transition cursor-pointer flex items-center gap-1.5"
-                  title="Bash (.sh) Skript zum Wiederherstellen herunterladen"
+                  title={language === 'de' ? 'Bash (.sh) Skript zum Wiederherstellen herunterladen' : 'Download Bash (.sh) rollback script'}
                 >
                   <FileText className="w-3.5 h-3.5 text-cyan-300" />
                   <span>Linux / Mac (.sh)</span>
@@ -264,7 +287,7 @@ export const UndoModal: React.FC<UndoModalProps> = ({
               onClick={onClose}
               className="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition cursor-pointer"
             >
-              Schließen
+              {language === 'de' ? 'Schließen' : 'Close'}
             </button>
 
             {activeSnapshot && (
@@ -275,7 +298,11 @@ export const UndoModal: React.FC<UndoModalProps> = ({
                 className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white shadow-md shadow-amber-950/40 transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 <RotateCcw className="w-4 h-4" />
-                <span>{isExecuting ? 'Wird wiederhergestellt...' : 'Jetzt 1:1 rückgängig machen'}</span>
+                <span>
+                  {isExecuting 
+                    ? (language === 'de' ? 'Wird wiederhergestellt...' : 'Restoring...') 
+                    : (language === 'de' ? 'Jetzt 1:1 rückgängig machen' : 'Restore 1:1 Now')}
+                </span>
               </button>
             )}
           </div>
@@ -284,3 +311,4 @@ export const UndoModal: React.FC<UndoModalProps> = ({
     </div>
   );
 };
+

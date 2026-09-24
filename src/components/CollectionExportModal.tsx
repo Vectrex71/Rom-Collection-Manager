@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Download, FileSpreadsheet, FileText, CheckCircle2, Copy } from 'lucide-react';
 import { RomFile } from '../types';
 import { exportCollectionToCsv, exportCollectionToMarkdown, triggerFileDownload } from '../utils/exportManager';
+import { useTranslation } from '../i18n';
 
 interface CollectionExportModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ export const CollectionExportModal: React.FC<CollectionExportModalProps> = ({
   roms,
   folderName,
 }) => {
+  const { t, language } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [exportFormat, setExportFormat] = useState<'csv' | 'markdown'>('csv');
 
@@ -60,9 +62,13 @@ export const CollectionExportModal: React.FC<CollectionExportModalProps> = ({
               📊
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">Sammlung exportieren & teilen</h3>
+              <h3 className="text-sm font-bold text-white">
+                {language === 'de' ? 'Sammlung exportieren & teilen' : 'Export & Share Collection'}
+              </h3>
               <p className="text-xs text-slate-300">
-                Lade deine kuratierte Spieleliste als CSV-Tabelle oder Markdown-Checkliste herunter.
+                {language === 'de' 
+                  ? 'Lade deine kuratierte Spieleliste als CSV-Tabelle oder Markdown-Checkliste herunter.'
+                  : 'Download your curated game list as a CSV spreadsheet or Markdown checklist.'}
               </p>
             </div>
           </div>
@@ -80,21 +86,29 @@ export const CollectionExportModal: React.FC<CollectionExportModalProps> = ({
           <div className="grid grid-cols-3 gap-3">
             <div className="p-3 bg-slate-900/50 rounded-xl border border-white/10 text-center">
               <div className="text-base font-bold text-white">{activeRoms.length}</div>
-              <div className="text-[11px] text-slate-400">Aktive Spiele</div>
+              <div className="text-[11px] text-slate-400">
+                {language === 'de' ? 'Aktive Spiele' : 'Active Games'}
+              </div>
             </div>
             <div className="p-3 bg-slate-900/50 rounded-xl border border-white/10 text-center">
               <div className="text-base font-bold text-amber-300">{top200Count} / 200</div>
-              <div className="text-[11px] text-slate-400">Top 200 Titel</div>
+              <div className="text-[11px] text-slate-400">
+                {language === 'de' ? 'Top 200 Titel' : 'Top 200 Titles'}
+              </div>
             </div>
             <div className="p-3 bg-slate-900/50 rounded-xl border border-white/10 text-center">
               <div className="text-base font-bold text-emerald-300">{totalSizeFormatted}</div>
-              <div className="text-[11px] text-slate-400">Speicherplatz</div>
+              <div className="text-[11px] text-slate-400">
+                {language === 'de' ? 'Speicherplatz' : 'Storage Size'}
+              </div>
             </div>
           </div>
 
           {/* Format selection */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-slate-200">Exportformat wählen:</label>
+            <label className="text-xs font-semibold text-slate-200">
+              {language === 'de' ? 'Exportformat wählen:' : 'Select export format:'}
+            </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
@@ -108,11 +122,13 @@ export const CollectionExportModal: React.FC<CollectionExportModalProps> = ({
                 <FileSpreadsheet className={`w-5 h-5 shrink-0 mt-0.5 ${exportFormat === 'csv' ? 'text-emerald-400' : 'text-slate-400'}`} />
                 <div>
                   <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                    CSV-Tabelle (.csv)
-                    {exportFormat === 'csv' && <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.2 rounded">Aktiv</span>}
+                    {language === 'de' ? 'CSV-Tabelle (.csv)' : 'CSV Spreadsheet (.csv)'}
+                    {exportFormat === 'csv' && <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.2 rounded">{language === 'de' ? 'Aktiv' : 'Active'}</span>}
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                    Ideal für Excel, Google Sheets, LibreOffice. Enthält Titel, Hashes, Regionen, Multi-Disks und Größen.
+                    {language === 'de'
+                      ? 'Ideal für Excel, Google Sheets, LibreOffice. Enthält Titel, Hashes, Regionen, Multi-Disks und Größen.'
+                      : 'Ideal for Excel, Google Sheets, LibreOffice. Includes titles, hashes, regions, multi-discs and sizes.'}
                   </p>
                 </div>
               </button>
@@ -129,11 +145,13 @@ export const CollectionExportModal: React.FC<CollectionExportModalProps> = ({
                 <FileText className={`w-5 h-5 shrink-0 mt-0.5 ${exportFormat === 'markdown' ? 'text-violet-400' : 'text-slate-400'}`} />
                 <div>
                   <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                    Markdown-Checkliste (.md)
-                    {exportFormat === 'markdown' && <span className="text-[10px] bg-violet-500/20 text-violet-300 px-1.5 py-0.2 rounded">Aktiv</span>}
+                    {language === 'de' ? 'Markdown-Checkliste (.md)' : 'Markdown Checklist (.md)'}
+                    {exportFormat === 'markdown' && <span className="text-[10px] bg-violet-500/20 text-violet-300 px-1.5 py-0.2 rounded">{language === 'de' ? 'Aktiv' : 'Active'}</span>}
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                    Strukturierte Liste mit Abhakhäkchen [x], sortiert nach Konsole. Perfekt für GitHub README oder Notion.
+                    {language === 'de'
+                      ? 'Strukturierte Liste mit Abhakhäkchen [x], sortiert nach Konsole. Perfekt für GitHub README oder Notion.'
+                      : 'Structured list with checkboxes [x], grouped by console. Perfect for GitHub README or Notion.'}
                   </p>
                 </div>
               </button>
@@ -151,18 +169,20 @@ export const CollectionExportModal: React.FC<CollectionExportModalProps> = ({
               {copied ? (
                 <>
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-emerald-300">In Zwischenablage kopiert!</span>
+                  <span className="text-emerald-300">
+                    {language === 'de' ? 'In Zwischenablage kopiert!' : 'Copied to clipboard!'}
+                  </span>
                 </>
               ) : (
                 <>
                   <Copy className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Als Text kopieren</span>
+                  <span>{language === 'de' ? 'Als Text kopieren' : 'Copy text'}</span>
                 </>
               )}
             </button>
           ) : (
             <div className="text-[11px] text-slate-400">
-              Kompilierte Datei ist UTF-8 formatiert.
+              {language === 'de' ? 'Kompilierte Datei ist UTF-8 formatiert.' : 'Compiled file is UTF-8 formatted.'}
             </div>
           )}
 
@@ -171,7 +191,7 @@ export const CollectionExportModal: React.FC<CollectionExportModalProps> = ({
               onClick={onClose}
               className="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition cursor-pointer"
             >
-              Abbrechen
+              {t('confirm.cancel')}
             </button>
 
             <button
@@ -180,7 +200,11 @@ export const CollectionExportModal: React.FC<CollectionExportModalProps> = ({
               className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/40 transition flex items-center gap-2 cursor-pointer"
             >
               <Download className="w-4 h-4" />
-              <span>{exportFormat === 'csv' ? 'CSV herunterladen' : 'Markdown herunterladen'}</span>
+              <span>
+                {exportFormat === 'csv' 
+                  ? (language === 'de' ? 'CSV herunterladen' : 'Download CSV') 
+                  : (language === 'de' ? 'Markdown herunterladen' : 'Download Markdown')}
+              </span>
             </button>
           </div>
         </div>
@@ -188,3 +212,4 @@ export const CollectionExportModal: React.FC<CollectionExportModalProps> = ({
     </div>
   );
 };
+

@@ -17,18 +17,22 @@ import {
   Cpu,
 } from 'lucide-react';
 import { PLATFORMS } from '../data/platformsData';
+import { useTranslation } from '../i18n';
 
 interface LandingPageProps {
   onStartScan: () => void;
   hasLoadedRoms?: boolean;
   onOpenCover3dModal?: () => void;
+  onOpenBiosStudio?: () => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
   onStartScan,
   hasLoadedRoms = false,
   onOpenCover3dModal,
+  onOpenBiosStudio,
 }) => {
+  const { t, language } = useTranslation();
   const [activeTab, setActiveTab] = useState<'after' | 'before'>('after');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -46,25 +50,38 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {/* Top Chip */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-violet-950/60 border border-violet-500/30 text-violet-300 text-xs font-semibold shadow-xs">
           <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
-          <span>No-Intro & 1G1R Standard • Automatische M3U Playlists • 3D Box Studio</span>
+          <span>{t('landing.badge')}</span>
         </div>
 
         {/* Headline */}
         <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white leading-tight">
-          Deine Retro-Sammlung.{' '}
+          {t('landing.heroTitle')}{' '}
           <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-amber-300 bg-clip-text text-transparent block sm:inline drop-shadow-sm">
-            Perfekt sortiert & spielbereit.
+            {t('landing.heroTitleHighlight')}
           </span>
         </h1>
 
         {/* Subtitle */}
         <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl mx-auto font-normal">
-          Schluss mit Dateichaos, Duplikaten und kryptischen Namen wie{' '}
-          <code className="bg-slate-950/70 text-amber-300 px-1.5 py-0.5 rounded border border-white/15 text-xs font-mono font-bold backdrop-blur-xs">
-            smw_v1_0_[b1].smc
-          </code>
-          . Der ROM Collection Manager analysiert deine Sammlung nach No-Intro- & 1G1R-Standards,
-          sortiert Multi-Disk-Spiele automatisch in Unterordner und erstellt fertige M3U-Playlists.
+          {language === 'de' ? (
+            <>
+              Schluss mit Dateichaos, Duplikaten und kryptischen Namen wie{' '}
+              <code className="bg-slate-950/70 text-amber-300 px-1.5 py-0.5 rounded border border-white/15 text-xs font-mono font-bold backdrop-blur-xs">
+                smw_v1_0_[b1].smc
+              </code>
+              . Der ROM Collection Manager analysiert deine Sammlung nach No-Intro- & 1G1R-Standards,
+              sortiert Multi-Disk-Spiele automatisch in Unterordner und erstellt fertige M3U-Playlists.
+            </>
+          ) : (
+            <>
+              No more file chaos, duplicates, and cryptic filenames like{' '}
+              <code className="bg-slate-950/70 text-amber-300 px-1.5 py-0.5 rounded border border-white/15 text-xs font-mono font-bold backdrop-blur-xs">
+                smw_v1_0_[b1].smc
+              </code>
+              . ROM Collection Manager analyzes your library using No-Intro and 1G1R standards,
+              organizes multi-disc sets into subfolders, and generates plug-and-play M3U playlists.
+            </>
+          )}
         </p>
 
         {/* Action CTAs */}
@@ -75,7 +92,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             className="px-7 py-3.5 rounded-xl font-extrabold text-sm text-white bg-linear-to-r from-violet-600 via-purple-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 active:scale-[0.98] shadow-lg shadow-violet-600/40 hover:shadow-violet-600/60 transition-all flex items-center gap-2.5 cursor-pointer group border border-white/20"
           >
             <Gamepad2 className="w-5 h-5 text-amber-300" />
-            <span>{hasLoadedRoms ? 'Zurück zur Sammlung' : 'Jetzt ROM-Ordner scannen & ordnen'}</span>
+            <span>
+              {hasLoadedRoms 
+                ? (language === 'de' ? 'Zurück zur Sammlung' : 'Back to Collection') 
+                : t('landing.btnScanNow')}
+            </span>
             <ArrowRight className="w-4 h-4 text-amber-300 group-hover:translate-x-1.5 transition-transform" />
           </button>
 
@@ -83,8 +104,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             href="#how-it-works"
             className="px-5 py-3.5 rounded-xl font-bold text-sm text-slate-200 bg-slate-900/60 hover:bg-slate-800/80 border border-white/15 hover:border-white/25 backdrop-blur-md transition flex items-center gap-2 shadow-xs"
           >
-            <span>Funktionen ansehen</span>
+            <span>{t('landing.btnFeatures')}</span>
           </a>
+
+          {onOpenBiosStudio && (
+            <button
+              onClick={onOpenBiosStudio}
+              className="px-5 py-3.5 rounded-xl font-bold text-sm text-slate-200 bg-slate-900/60 hover:bg-slate-800/80 border border-purple-500/30 hover:border-purple-500/50 backdrop-blur-md transition flex items-center gap-2 shadow-xs cursor-pointer"
+            >
+              <Cpu className="w-4 h-4 text-purple-400" />
+              <span>{language === 'de' ? 'BIOS Studio' : 'BIOS Studio'}</span>
+            </button>
+          )}
         </div>
 
         {/* Quick Metrics */}
@@ -94,28 +125,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span className="text-xl sm:text-2xl font-black text-cyan-400 group-hover:scale-105 transition-transform">{PLATFORMS.length}</span>
               <Cpu className="w-4 h-4 text-cyan-500/60" />
             </div>
-            <div className="text-xs text-slate-300 font-bold mt-1">Systeme erkannt</div>
+            <div className="text-xs text-slate-300 font-bold mt-1">{t('landing.metrics.systemsCount')}</div>
           </div>
           <div className="bg-slate-950/50 backdrop-blur-md p-4 rounded-2xl border border-violet-500/20 hover:border-violet-500/40 transition shadow-xs group">
             <div className="flex items-center justify-between">
               <span className="text-xl sm:text-2xl font-black text-violet-400 group-hover:scale-105 transition-transform">1G1R</span>
               <Layers className="w-4 h-4 text-violet-500/60" />
             </div>
-            <div className="text-xs text-slate-300 font-bold mt-1">1 Game 1 Region Standard</div>
+            <div className="text-xs text-slate-300 font-bold mt-1">{t('landing.metrics.oneG1r')}</div>
           </div>
           <div className="bg-slate-950/50 backdrop-blur-md p-4 rounded-2xl border border-emerald-500/20 hover:border-emerald-500/40 transition shadow-xs group">
             <div className="flex items-center justify-between">
               <span className="text-xl sm:text-2xl font-black text-emerald-400 group-hover:scale-105 transition-transform">M3U</span>
               <Disc className="w-4 h-4 text-emerald-500/60" />
             </div>
-            <div className="text-xs text-slate-300 font-bold mt-1">Multi-Disk Playlists</div>
+            <div className="text-xs text-slate-300 font-bold mt-1">{t('landing.metrics.m3u')}</div>
           </div>
           <div className="bg-slate-950/50 backdrop-blur-md p-4 rounded-2xl border border-amber-500/20 hover:border-amber-500/40 transition shadow-xs group">
             <div className="flex items-center justify-between">
-              <span className="text-xl sm:text-2xl font-black text-amber-400 group-hover:scale-105 transition-transform">100% Sicher</span>
+              <span className="text-xl sm:text-2xl font-black text-amber-400 group-hover:scale-105 transition-transform">{t('landing.metrics.safe')}</span>
               <ShieldCheck className="w-4 h-4 text-amber-500/60" />
             </div>
-            <div className="text-xs text-slate-300 font-bold mt-1">Duplikate in _Duplicates/</div>
+            <div className="text-xs text-slate-300 font-bold mt-1">{t('landing.metrics.safeDesc')}</div>
           </div>
         </div>
       </section>
@@ -125,10 +156,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="px-6 py-4 border-b border-white/10 bg-slate-950/60 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-base font-black text-white flex items-center gap-2">
-              <span>Der Vorher / Nachher Vergleich</span>
+              <span>{t('landing.beforeAfter.title')}</span>
             </h2>
             <p className="text-xs text-slate-400 font-medium">
-              Sieh selbst, welchen Unterschied eine automatische Bereinigung macht.
+              {t('landing.beforeAfter.subtitle')}
             </p>
           </div>
 
@@ -144,7 +175,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              ⚠️ Vorher (Typisches Chaos)
+              {t('landing.beforeAfter.btnBefore')}
             </button>
             <button
               id="tab-btn-after"
@@ -156,7 +187,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              ✨ Nachher (Mit ROM Manager)
+              {t('landing.beforeAfter.btnAfter')}
             </button>
           </div>
         </div>
@@ -175,7 +206,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </span>
               </div>
               <span className="text-[10px] font-mono text-slate-500 hidden sm:inline">
-                {activeTab === 'after' ? 'STATUS: BEREINIGT & M3U BEREIT' : 'STATUS: UNORGANISIERT'}
+                {activeTab === 'after' ? t('landing.beforeAfter.statusClean') : t('landing.beforeAfter.statusUnorganized')}
               </span>
             </div>
 
@@ -184,18 +215,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div className="flex items-center gap-2.5 text-xs font-bold text-emerald-300 bg-emerald-950/60 px-3.5 py-2.5 rounded-xl border border-emerald-500/40">
                   <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
                   <span>
-                    Alles perfekt geordnet: Konsolen-Ordner, 1G1R bereinigt und saubere Multi-Disk Playlists!
+                    {t('landing.beforeAfter.afterBanner')}
                   </span>
                 </div>
 
                 <div className="font-mono text-xs text-slate-200 space-y-3 overflow-x-auto">
-                  <div className="text-slate-400 font-semibold">// 1. Multi-Disk Spiele automatisch in Unterordner & M3U erstellt:</div>
+                  <div className="text-slate-400 font-semibold">{t('landing.beforeAfter.afterNoteMultiDisc')}</div>
                   <div className="text-emerald-400 font-bold">
                     📂 Commodore Amiga/
                     <div className="pl-5 text-violet-300 font-normal">
                       📄 Secret of Monkey Island.m3u{' '}
                       <span className="text-emerald-300 text-[11px] font-sans font-bold">
-                        ← RetroArch & Batocera zeigen nur 1 sauberen Menüeintrag!
+                        {t('landing.beforeAfter.afterNoteOneEntry')}
                       </span>
                     </div>
                     <div className="pl-5 text-slate-300 font-normal">
@@ -217,7 +248,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     <div className="pl-5 text-slate-200 font-normal">
                       ├── 📄 Super Mario Bros. 3 (Europe).nes{' '}
                       <span className="text-emerald-400 text-[11px] font-sans font-bold">
-                        [1G1R: Bestes europäisches Release gewählt]
+                        {t('landing.beforeAfter.afterNote1g1r')}
                       </span>
                     </div>
                     <div className="pl-5 text-slate-200 font-normal">
@@ -228,15 +259,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <div className="text-amber-400 font-bold pt-2">
                     📂 _Duplicates/{' '}
                     <span className="text-slate-400 text-[11px] font-sans font-normal">
-                      (Sicher archiviert – nichts unwiederbringlich gelöscht!)
+                      {t('landing.beforeAfter.afterNoteDuplicates')}
                     </span>
                     <div className="pl-5 text-slate-400 font-normal">
-                      ├── 📄 Super Mario Bros. 3 (USA).nes <span className="text-slate-500">(US-Klon)</span>
+                      ├── 📄 Super Mario Bros. 3 (USA).nes <span className="text-slate-500">({t('landing.beforeAfter.clone')})</span>
                     </div>
                     <div className="pl-5 text-slate-400 font-normal">
-                      ├── 📄 smb3_v1_0_[b1].nes <span className="text-rose-400">(Defekter Bad Dump)</span>
+                      ├── 📄 smb3_v1_0_[b1].nes <span className="text-rose-400">({t('landing.beforeAfter.badDump')})</span>
                     </div>
-                    <div className="pl-5 text-slate-500 font-normal">└── 📄 .DS_Store, Thumbs.db (Cache-Müll)</div>
+                    <div className="pl-5 text-slate-500 font-normal">└── 📄 .DS_Store, Thumbs.db ({t('landing.beforeAfter.cacheJunk')})</div>
                   </div>
                 </div>
               </div>
@@ -245,12 +276,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div className="flex items-center gap-2.5 text-xs font-bold text-amber-300 bg-amber-950/60 px-3.5 py-2.5 rounded-xl border border-amber-500/40">
                   <span className="text-base shrink-0">⚠️</span>
                   <span>
-                    Unsortiertes Chaos: Dreifache Menüeinträge im Emulator, Duplikate und defekte Dumps.
+                    {t('landing.beforeAfter.beforeBanner')}
                   </span>
                 </div>
 
                 <div className="font-mono text-xs text-slate-300 space-y-2 overflow-x-auto">
-                  <div className="text-rose-400 font-bold">📂 Roms/ (Alles durcheinander im selben Hauptordner)</div>
+                  <div className="text-rose-400 font-bold">{t('landing.beforeAfter.beforeNoteChaos')}</div>
                   <div className="pl-5 text-rose-300">
                     ├── 📄 Secret of Monkey Island, The (E) (Disk 1 of 3) [!].adf
                   </div>
@@ -261,14 +292,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     ├── 📄 Secret of Monkey Island, The (E) (Disk 3 of 3) [!].adf
                   </div>
                   <div className="pl-5 text-rose-400/90 font-sans text-[11px] font-bold">
-                    ↳ RetroArch listet 3 separate Spiele im Menü auf! Disc-Wechsel funktioniert nicht.
+                    {t('landing.beforeAfter.beforeNoteRetroArchBug')}
                   </div>
                   <div className="pl-5 text-slate-400">├── 📄 Super Mario Bros. 3 (Europe).nes</div>
                   <div className="pl-5 text-amber-300">
-                    ├── 📄 Super Mario Bros. 3 (USA).nes <span className="text-slate-500">(Duplikat)</span>
+                    ├── 📄 Super Mario Bros. 3 (USA).nes <span className="text-slate-500">({t('landing.beforeAfter.beforeNoteDuplicate')})</span>
                   </div>
                   <div className="pl-5 text-rose-400">
-                    ├── 📄 smb3_v1_0_[b1].nes <span className="text-slate-500">(Bad Dump - stürzt ab)</span>
+                    ├── 📄 smb3_v1_0_[b1].nes <span className="text-slate-500">({t('landing.beforeAfter.beforeNoteBadCrash')})</span>
                   </div>
                   <div className="pl-5 text-slate-600">└── 📄 .DS_Store, Thumbs.db, game.tmp</div>
                 </div>
@@ -282,10 +313,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <section id="how-it-works" className="frosted-glass rounded-3xl p-6 sm:p-10 space-y-8 border border-white/15 shadow-2xl">
         <div className="text-center max-w-2xl mx-auto space-y-2">
           <h3 className="text-2xl sm:text-3xl font-black text-white">
-            Die 8 Kernfunktionen des ROM Collection Managers
+            {t('landing.features8.sectionTitle')}
           </h3>
           <p className="text-xs sm:text-sm text-slate-300 font-medium">
-            Speziell entwickelt für Retro-Gamer, die saubere Bibliotheken auf Batocera, RetroArch oder dem Steam Deck schätzen.
+            {t('landing.features8.sectionSubtitle')}
           </p>
         </div>
 
@@ -296,11 +327,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <Layers className="w-5 h-5" />
             </div>
             <h4 className="text-base font-bold text-white">
-              1. 1G1R & Duplikaterkennung
+              {t('landing.features8.f1Title')}
             </h4>
             <p className="text-xs text-slate-300 leading-relaxed font-normal">
-              <strong className="text-white">1 Game 1 Region:</strong> Wer braucht 5 Versionen desselben Spiels? Das Tool erkennt Klone,
-              Beta-Versionen und Regionen (USA, Japan, Europa) und empfiehlt automatisch das beste finale Release.
+              {t('landing.features8.f1Desc')}
             </p>
           </div>
 
@@ -310,10 +340,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <Disc className="w-5 h-5" />
             </div>
             <h4 className="text-base font-bold text-white">
-              2. Vollautomatische M3U Playlists
+              {t('landing.features8.f2Title')}
             </h4>
             <p className="text-xs text-slate-300 leading-relaxed font-normal">
-              Spiele mit mehreren Disketten (Amiga, PS1, Saturn) werden <strong className="text-white">vollautomatisch</strong> in eigene Unterordner gepackt und mit einer passenden <code className="bg-slate-900 text-emerald-300 px-1 py-0.5 rounded border border-white/10 font-bold">.m3u</code> versehen.
+              {t('landing.features8.f2Desc')}
             </p>
           </div>
 
@@ -323,11 +353,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <FolderSync className="w-5 h-5" />
             </div>
             <h4 className="text-base font-bold text-white">
-              3. {PLATFORMS.length} Plattform-Ordner
+              {t('landing.features8.f3Title', { count: PLATFORMS.length })}
             </h4>
             <p className="text-xs text-slate-300 leading-relaxed font-normal">
-              Ob CPC, SNES, Mega Drive, Game Boy oder PlayStation: Anhand von Dateiendungen und Pfaden sortiert
-              der Manager chaotische ROM-Ordner in übersichtliche Verzeichnisse ein.
+              {t('landing.features8.f3Desc')}
             </p>
           </div>
 
@@ -337,26 +366,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <FileCheck className="w-5 h-5" />
             </div>
             <h4 className="text-base font-bold text-white">
-              4. No-Intro Namensbereinigung
+              {t('landing.features8.f4Title')}
             </h4>
             <p className="text-xs text-slate-300 leading-relaxed font-normal">
-              Entfernt nervige Dumping-Kürzel wie <code className="bg-slate-900 px-1 py-0.5 rounded text-amber-300 border border-white/10">[!]</code>,{' '}
-              <code className="bg-slate-900 px-1 py-0.5 rounded text-amber-300 border border-white/10">(v1.1)</code>,{' '}
-              <code className="bg-slate-900 px-1 py-0.5 rounded text-amber-300 border border-white/10">[b1]</code> und dreht Artikel korrekt um.
+              {t('landing.features8.f4Desc')}
             </p>
           </div>
 
           {/* 5. Top 200 Spiele Kuration */}
-          <div className="card-hover-lift bg-slate-950/60 backdrop-blur-md p-6 rounded-2xl border border-white/10 space-y-3 shadow-md">
-            <div className="w-11 h-11 rounded-xl bg-linear-to-br from-purple-600/30 to-fuchsia-600/20 border border-purple-500/40 text-purple-300 flex items-center justify-center font-bold shadow-xs">
+          <div className="card-hover-lift bg-slate-950/60 backdrop-blur-md p-6 rounded-2xl border border-purple-500/30 space-y-3 shadow-md">
+            <div className="w-11 h-11 rounded-xl bg-linear-to-br from-purple-600/30 to-fuchsia-600/20 border border-purple-500/40 text-purple-300 flex items-center justify-center font-bold shadow-xs shrink-0">
               <Sparkles className="w-5 h-5" />
             </div>
             <h4 className="text-base font-bold text-white">
-              5. Kuratierte „Top 200“ Best-of
+              {t('landing.features8.f5Title')}
             </h4>
             <p className="text-xs text-slate-300 leading-relaxed font-normal">
-              Ideal für Handhelds: Isoliert die 200 besten Spiele aller Zeiten mit 1 Klick in einen separaten{' '}
-              <code className="bg-slate-900 px-1 py-0.5 rounded text-purple-300 border border-white/10 font-bold">_Top200/</code>-Ordner.
+              {t('landing.features8.f5Desc')}
             </p>
           </div>
 
@@ -366,11 +392,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <ShieldCheck className="w-5 h-5" />
             </div>
             <h4 className="text-base font-bold text-white">
-              6. Maximale Sicherheit
+              {t('landing.features8.f6Title')}
             </h4>
             <p className="text-xs text-slate-300 leading-relaxed font-normal">
-              Kein Datenverlust: Duplikate wandern in den separaten Ordner{' '}
-              <code className="bg-slate-900 px-1 py-0.5 rounded text-rose-300 border border-white/10 font-bold">_Duplicates/</code>. Volle Kontrolle garantiert.
+              {t('landing.features8.f6Desc')}
             </p>
           </div>
 
@@ -380,11 +405,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <Languages className="w-5 h-5" />
             </div>
             <h4 className="text-base font-bold text-white">
-              7. Translations- & Hack-Schutz
+              {t('landing.features8.f7Title')}
             </h4>
             <p className="text-xs text-slate-300 leading-relaxed font-normal">
-              Gepatchte Fan-Übersetzungen (<code className="bg-slate-900 px-1 py-0.5 rounded text-cyan-300 border border-white/10">[T+Ger]</code>),
-              Kaizo-Hacks und Homebrew werden separat erkannt und nie als Duplikat gelöscht!
+              {t('landing.features8.f7Desc')}
             </p>
           </div>
 
@@ -394,10 +418,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <Box className="w-5 h-5" />
             </div>
             <h4 className="text-base font-bold text-white">
-              8. 3D Cover Studio
+              {t('landing.features8.f8Title')}
             </h4>
             <p className="text-xs text-slate-300 leading-relaxed font-normal">
-              Verwandle flache 2D-Cover im Handumdrehen in plastische 3D-Boxarts mit authentischem Buchrücken, Glanzeffekten und System-Vorlagen.
+              {t('landing.features8.f8Desc')}
             </p>
           </div>
         </div>
@@ -406,13 +430,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* 4. THE MULTI-DISC DEEP DIVE */}
       <section className="frosted-glass rounded-3xl p-8 sm:p-12 border border-violet-500/35 space-y-6 shadow-2xl">
         <h3 className="text-2xl sm:text-3xl font-black text-white">
-          Multi-Disk Spiele: Automatische Ordner & M3U-Playlists
+          {t('landing.multiDiscDeep.title')}
         </h3>
 
         <p className="text-sm text-slate-300 leading-relaxed max-w-2xl font-normal">
-          Früher musstest du für jedes Spiel mit 2–4 Disketten (wie Monkey Island oder Final Fantasy) von Hand Unterordner anlegen,
-          alle Disketten hineinverschieben und Textdateien für M3U-Playlists schreiben.
-          <strong className="text-white block mt-1">Das erledigt der ROM Collection Manager jetzt komplett automatisch für dich.</strong>
+          {t('landing.multiDiscDeep.desc')}{' '}
+          <strong className="text-white block mt-1">{t('landing.multiDiscDeep.highlight')}</strong>
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
@@ -421,10 +444,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span className="w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-xs font-black shadow-xs">
                 1
               </span>
-              <span>Automatische Erkennung</span>
+              <span>{t('landing.multiDiscDeep.step1Title')}</span>
             </div>
             <p className="text-slate-300 text-xs leading-relaxed">
-              Erkennt zusammengehörige Disks (Disk 1, Disk 2, Disc A, CD1) anhand von Dateinamen und Hash-Mustern.
+              {t('landing.multiDiscDeep.step1Desc')}
             </p>
           </div>
 
@@ -433,10 +456,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span className="w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-xs font-black shadow-xs">
                 2
               </span>
-              <span>Unterordner & Disks verschieben</span>
+              <span>{t('landing.multiDiscDeep.step2Title')}</span>
             </div>
             <p className="text-slate-300 text-xs leading-relaxed">
-              Erstellt z. B. <code className="text-emerald-300 font-bold">Amiga/Secret of Monkey Island/</code> und verschiebt alle Disks dorthin.
+              {t('landing.multiDiscDeep.step2Desc')}
             </p>
           </div>
 
@@ -445,10 +468,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span className="w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-xs font-black shadow-xs">
                 3
               </span>
-              <span>M3U-Playlist schreiben</span>
+              <span>{t('landing.multiDiscDeep.step3Title')}</span>
             </div>
             <p className="text-slate-300 text-xs leading-relaxed">
-              Schreibt die fertige .m3u Playlist direkt in den Plattformordner. RetroArch zeigt nur noch 1 sauberes Spiel!
+              {t('landing.multiDiscDeep.step3Desc')}
             </p>
           </div>
         </div>
@@ -457,25 +480,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* 5. SUPPORTED EMULATORS */}
       <section className="frosted-glass rounded-3xl p-6 sm:p-10 text-center space-y-6 border border-white/15 shadow-2xl">
         <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">
-          Optimiert für deine Emulatoren & Retro-Konsolen
+          {t('landing.emulators.title')}
         </h3>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-bold text-white">
           <div className="card-hover-lift bg-slate-950/60 backdrop-blur-md p-4.5 rounded-2xl border border-white/10 shadow-xs">
             🎮 RetroArch
-            <div className="text-[11px] text-slate-300 font-normal mt-1">Nahtloser Disc-Wechsel</div>
+            <div className="text-[11px] text-slate-300 font-normal mt-1">{t('landing.emulators.retroArch')}</div>
           </div>
           <div className="card-hover-lift bg-slate-950/60 backdrop-blur-md p-4.5 rounded-2xl border border-white/10 shadow-xs">
             🕹️ Batocera.linux
-            <div className="text-[11px] text-slate-300 font-normal mt-1">Keine Doppel-Einträge</div>
+            <div className="text-[11px] text-slate-300 font-normal mt-1">{t('landing.emulators.batocera')}</div>
           </div>
           <div className="card-hover-lift bg-slate-950/60 backdrop-blur-md p-4.5 rounded-2xl border border-white/10 shadow-xs">
             📟 Steam Deck / EmuDeck
-            <div className="text-[11px] text-slate-300 font-normal mt-1">Perfekt für ROM-Pfade</div>
+            <div className="text-[11px] text-slate-300 font-normal mt-1">{t('landing.emulators.steamDeck')}</div>
           </div>
           <div className="card-hover-lift bg-slate-950/60 backdrop-blur-md p-4.5 rounded-2xl border border-white/10 shadow-xs">
             ⚙️ MiSTer FPGA & Pocket
-            <div className="text-[11px] text-slate-300 font-normal mt-1">Saubere Verzeichnisstruktur</div>
+            <div className="text-[11px] text-slate-300 font-normal mt-1">{t('landing.emulators.mister')}</div>
           </div>
         </div>
       </section>
@@ -483,8 +506,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* 6. FAQ SECTION */}
       <section className="frosted-glass rounded-3xl p-6 sm:p-10 space-y-6 border border-white/15 shadow-2xl">
         <div className="text-center">
-          <h3 className="text-2xl font-black text-white">Häufige Fragen (FAQ)</h3>
-          <p className="text-xs text-slate-300 font-medium mt-1">Alles was du über den Scan und die Ausführung wissen musst.</p>
+          <h3 className="text-2xl font-black text-white">{t('landing.faqList.title')}</h3>
+          <p className="text-xs text-slate-300 font-medium mt-1">{t('landing.faqList.subtitle')}</p>
         </div>
 
         <div className="space-y-3 text-xs">
@@ -495,14 +518,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={() => toggleFaq(1)}
               className="w-full text-left px-5 py-4 font-bold text-white flex items-center justify-between cursor-pointer hover:bg-white/5 transition"
             >
-              <span>Werden Dateien von meiner Festplatte gelöscht?</span>
+              <span>{t('landing.faqList.q1')}</span>
               <ChevronDown className={`w-4 h-4 text-violet-400 transition-transform duration-200 ${openFaq === 1 ? 'rotate-180' : ''}`} />
             </button>
             {openFaq === 1 && (
               <div className="px-5 pb-4 text-slate-300 font-normal leading-relaxed border-t border-white/10 pt-3">
-                <strong className="text-white font-bold">Nein!</strong> Der Manager löscht niemals unwiederbringlich deine Originale. Duplikate, Cache-Dateien
-                und identifizierte Mülldateien werden in den Ordner <code className="bg-slate-900 px-1.5 py-0.5 rounded border border-white/10 text-amber-300 font-bold">_Duplicates/</code> verschoben.
-                Du kannst diesen Ordner jederzeit prüfen und hast die volle Kontrolle.
+                <strong className="text-white font-bold">{t('landing.faqList.a1Prefix')} </strong>
+                {t('landing.faqList.a1Text')}
               </div>
             )}
           </div>
@@ -514,14 +536,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={() => toggleFaq(2)}
               className="w-full text-left px-5 py-4 font-bold text-white flex items-center justify-between cursor-pointer hover:bg-white/5 transition"
             >
-              <span>Muss ich Multi-Disk Spiele jetzt noch von Hand verschieben?</span>
+              <span>{t('landing.faqList.q2')}</span>
               <ChevronDown className={`w-4 h-4 text-violet-400 transition-transform duration-200 ${openFaq === 2 ? 'rotate-180' : ''}`} />
             </button>
             {openFaq === 2 && (
               <div className="px-5 pb-4 text-slate-300 font-normal leading-relaxed border-t border-white/10 pt-3">
-                <strong className="text-white font-bold">Nein, absolut keine einzige Datei!</strong> Die App erstellt automatisch die Unterordner für jedes Spiel,
-                verschiebt alle Disketten hinein und schreibt die fertige <code className="bg-slate-900 px-1.5 py-0.5 rounded border border-white/10 text-emerald-300 font-bold">.m3u</code>-Playlist
-                direkt daneben.
+                <strong className="text-white font-bold">{t('landing.faqList.a2Prefix')} </strong>
+                {t('landing.faqList.a2Text')}
               </div>
             )}
           </div>
@@ -533,13 +554,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={() => toggleFaq(3)}
               className="w-full text-left px-5 py-4 font-bold text-white flex items-center justify-between cursor-pointer hover:bg-white/5 transition"
             >
-              <span>Werden meine ROMs irgendwo ins Internet hochgeladen?</span>
+              <span>{t('landing.faqList.q3')}</span>
               <ChevronDown className={`w-4 h-4 text-violet-400 transition-transform duration-200 ${openFaq === 3 ? 'rotate-180' : ''}`} />
             </button>
             {openFaq === 3 && (
               <div className="px-5 pb-4 text-slate-300 font-normal leading-relaxed border-t border-white/10 pt-3">
-                <strong className="text-white font-bold">Nein.</strong> Der Scan und die Erkennung finden 100% lokal in deinem Webbrowser statt.
-                Deine Gigabytes an ROM-Dateien verlassen niemals deinen Computer.
+                <strong className="text-white font-bold">{t('landing.faqList.a3Prefix')} </strong>
+                {t('landing.faqList.a3Text')}
               </div>
             )}
           </div>
@@ -551,11 +572,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-80 h-40 bg-amber-500/10 blur-3xl rounded-full pointer-events-none" />
 
         <h3 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
-          Bereit für eine aufgeräumte Retro-Bibliothek?
+          {t('landing.ctaBottom.title')}
         </h3>
         <p className="text-slate-300 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed font-normal">
-          Starte den Scan deines ROM-Ordners. In wenigen Augenblicken hast du volle Übersicht über deine Spiele,
-          saubere No-Intro-Dateinamen und fertige M3U-Playlists.
+          {t('landing.ctaBottom.desc')}
         </p>
 
         <div className="pt-2">
@@ -565,7 +585,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             className="px-8 py-4 rounded-xl font-black text-sm text-slate-950 bg-linear-to-r from-amber-400 via-amber-300 to-amber-400 hover:from-amber-300 hover:to-amber-200 shadow-xl shadow-amber-400/30 hover:shadow-amber-400/50 transition-all inline-flex items-center gap-2.5 cursor-pointer group"
           >
             <Gamepad2 className="w-5 h-5 text-slate-950" />
-            <span>{hasLoadedRoms ? 'Zurück zur Sammlung' : 'Jetzt ROM-Ordner auswählen & scannen'}</span>
+            <span>{hasLoadedRoms ? t('landing.ctaBottom.btnBack') : t('landing.ctaBottom.btnStart')}</span>
             <ArrowRight className="w-4 h-4 text-slate-950 group-hover:translate-x-1.5 transition-transform" />
           </button>
         </div>
@@ -573,4 +593,3 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     </div>
   );
 };
-

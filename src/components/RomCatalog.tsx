@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { RomFile, PlatformCode } from '../types';
 import { getPlatformMetadata, PLATFORMS } from '../data/platformsData';
+import { useTranslation } from '../i18n';
 
 interface RomCatalogProps {
   roms: RomFile[];
@@ -36,6 +37,7 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
   onBatchOrganize,
   onAssignCover,
 }) => {
+  const { t, language } = useTranslation();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [pageSize, setPageSize] = useState<number>(50);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -109,9 +111,9 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
   if (roms.length === 0) {
     return (
       <div className="text-center py-12 px-4 frosted-glass rounded-2xl my-6 text-slate-100">
-        <h4 className="text-sm font-bold text-white">Keine passenden ROMs gefunden</h4>
+        <h4 className="text-sm font-bold text-white">{t('catalog.noRomsFound')}</h4>
         <p className="text-xs text-slate-300 mt-1 max-w-sm mx-auto">
-          Passe deine Suche oder System-Filter an.
+          {language === 'de' ? 'Passe deine Suche oder System-Filter an.' : 'Try adjusting your search or system filters.'}
         </p>
       </div>
     );
@@ -137,7 +139,7 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
             />
             <span>
               {isSelectionActive
-                ? `${validSelectedCount} von ${roms.length} ausgewählt`
+                ? (language === 'de' ? `${validSelectedCount} von ${roms.length} ausgewählt` : `${validSelectedCount} of ${roms.length} selected`)
                 : `${roms.length} ROMs`}
             </span>
           </label>
@@ -147,7 +149,7 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
               onClick={() => setSelectedIds(new Set())}
               className="text-[11px] text-slate-400 hover:text-white underline cursor-pointer"
             >
-              Auswahl aufheben
+              {t('catalog.deselectAll')}
             </button>
           )}
         </div>
@@ -160,13 +162,13 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
               id="btn-batch-rename-all"
               onClick={() => onBatchRename(uncleanRoms)}
               className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-900/30 transition flex items-center gap-1.5 cursor-pointer"
-              title={`${uncleanRoms.length} ROMs nach No-Intro Standard umbenennen`}
+              title={language === 'de' ? `${uncleanRoms.length} ROMs nach No-Intro Standard umbenennen` : `Rename ${uncleanRoms.length} ROMs to No-Intro standards`}
             >
               <span>⚡</span>
               <span>
                 {isSelectionActive
-                  ? `Ausgewählte umbenennen (${uncleanRoms.length})`
-                  : `Alle umbenennen (${uncleanRoms.length})`}
+                  ? (language === 'de' ? `Ausgewählte umbenennen (${uncleanRoms.length})` : `Rename Selected (${uncleanRoms.length})`)
+                  : (language === 'de' ? `Alle umbenennen (${uncleanRoms.length})` : `Rename All (${uncleanRoms.length})`)}
               </span>
             </button>
           )}
@@ -177,13 +179,13 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
               id="btn-batch-move-all"
               onClick={() => onBatchMove(unmovedRoms)}
               className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-900/50 hover:bg-slate-800 text-slate-200 border border-white/15 backdrop-blur-md shadow-xs transition flex items-center gap-1.5 cursor-pointer"
-              title={`${unmovedRoms.length} ROMs in System-Unterordner verschieben`}
+              title={language === 'de' ? `${unmovedRoms.length} ROMs in System-Unterordner verschieben` : `Move ${unmovedRoms.length} ROMs to system subfolders`}
             >
               <span>📁</span>
               <span>
                 {isSelectionActive
-                  ? `In Ordner verschieben (${unmovedRoms.length})`
-                  : `In Ordner (${unmovedRoms.length})`}
+                  ? (language === 'de' ? `In Ordner verschieben (${unmovedRoms.length})` : `Move to Folders (${unmovedRoms.length})`)
+                  : (language === 'de' ? `In Ordner (${unmovedRoms.length})` : `Into Folders (${unmovedRoms.length})`)}
               </span>
             </button>
           )}
@@ -194,10 +196,18 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
               id="btn-batch-organize-all"
               onClick={() => onBatchOrganize(unorganizedRoms)}
               className="px-3 py-1.5 rounded-lg text-xs font-bold bg-linear-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-md shadow-violet-900/30 transition flex items-center gap-1.5 cursor-pointer"
-              title={`${unorganizedRoms.length} ROMs in einem Rutsch umbenennen und in Systemordner verschieben`}
+              title={
+                language === 'de'
+                  ? `${unorganizedRoms.length} ROMs in einem Rutsch umbenennen UND in Systemordner verschieben (Kombi-Aktion)`
+                  : `Rename AND move ${unorganizedRoms.length} ROMs to system subfolders in one single step (Combined Action)`
+              }
             >
               <span>✨</span>
-              <span>In einem Rutsch ordnen ({unorganizedRoms.length})</span>
+              <span>
+                {isSelectionActive
+                  ? (language === 'de' ? `Ausgewählte ordnen (${unorganizedRoms.length})` : `Organize Selected (${unorganizedRoms.length})`)
+                  : (language === 'de' ? `In einem Rutsch ordnen (${unorganizedRoms.length})` : `Organize in One Go (${unorganizedRoms.length})`)}
+              </span>
             </button>
           )}
 
@@ -215,7 +225,7 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
                 className="bg-slate-900/60 border border-white/15 backdrop-blur-md rounded-lg px-2 py-1 text-xs text-slate-200 cursor-pointer shadow-xs"
               >
                 <option value="" disabled>
-                  System zuweisen...
+                  {language === 'de' ? 'System zuweisen...' : 'Assign platform...'}
                 </option>
                 {PLATFORMS.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -232,12 +242,13 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-2.5 bg-slate-950/50 border-b border-white/10 text-xs text-slate-300">
         <div className="flex items-center gap-3">
           <span className="text-[11px] text-slate-400">
-            Zeige {roms.length === 0 ? 0 : (safeCurrentPage - 1) * pageSize + 1}–
-            {Math.min(safeCurrentPage * pageSize, roms.length)} von {roms.length} ROMs
+            {language === 'de'
+              ? `Zeige ${roms.length === 0 ? 0 : (safeCurrentPage - 1) * pageSize + 1}–${Math.min(safeCurrentPage * pageSize, roms.length)} von ${roms.length} ROMs`
+              : `Showing ${roms.length === 0 ? 0 : (safeCurrentPage - 1) * pageSize + 1}–${Math.min(safeCurrentPage * pageSize, roms.length)} of ${roms.length} ROMs`}
           </span>
           <span className="text-slate-600">•</span>
           <label className="text-[11px] text-slate-400 flex items-center gap-1.5">
-            <span>Pro Seite:</span>
+            <span>{language === 'de' ? 'Pro Seite:' : 'Per page:'}</span>
             <select
               value={pageSize}
               onChange={(e) => {
@@ -250,7 +261,7 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
               <option value={50}>50</option>
               <option value={100}>100</option>
               <option value={200}>200</option>
-              <option value={-1}>Alle ({roms.length})</option>
+              <option value={-1}>{language === 'de' ? `Alle (${roms.length})` : `All (${roms.length})`}</option>
             </select>
           </label>
         </div>
@@ -263,10 +274,10 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold cursor-pointer"
             >
-              ◀ Vorherige
+              ◀ {language === 'de' ? 'Vorherige' : 'Previous'}
             </button>
             <span className="font-mono text-xs font-bold text-violet-300 px-1">
-              Seite {safeCurrentPage} von {totalPages}
+              {t('catalog.page', { current: safeCurrentPage, total: totalPages })}
             </span>
             <button
               type="button"
@@ -274,7 +285,7 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold cursor-pointer"
             >
-              Nächste ▶
+              {language === 'de' ? 'Nächste' : 'Next'} ▶
             </button>
           </div>
         )}
@@ -329,9 +340,9 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
               {/* Drag over overlay banner */}
               {isDraggingOverThis && (
                 <div className="absolute inset-0 bg-emerald-950/80 backdrop-blur-xs flex items-center justify-center gap-2 z-10 pointer-events-none text-emerald-300 font-bold text-xs border-2 border-dashed border-emerald-400 rounded-lg">
-                  <span>📥 Cover hier ablegen für &quot;{rom.canonicalTitle}&quot;</span>
+                  <span>📥 {language === 'de' ? `Cover hier ablegen für "${rom.canonicalTitle}"` : `Drop cover here for "${rom.canonicalTitle}"`}</span>
                   <span className="font-mono text-[11px] text-emerald-400">
-                    (wird als {rom.cleanFilename.replace(/\.[^/.]+$/, '')}.png verknüpft)
+                    ({rom.cleanFilename.replace(/\.[^/.]+$/, '')}.png)
                   </span>
                 </div>
               )}
@@ -370,28 +381,28 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
                     {/* MAME Protection Badge */}
                     {rom.isArcadeRom && (
                       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-950/70 text-amber-300 border border-amber-500/40">
-                        🛡️ MAME-Schutz
+                        🛡️ {language === 'de' ? 'MAME-Schutz' : 'MAME Protect'}
                       </span>
                     )}
 
                     {/* Status Tags - Clean, minimal text only */}
                     {rom.isJunk && (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-950/60 text-rose-300 border border-rose-500/30">
-                        {rom.junkReason || 'Cache-/Systemmüll'}
+                        {rom.junkReason || t('catalog.tagDuplicate')}
                       </span>
                     )}
 
                     {/* Translation Badge */}
                     {rom.editionType === 'translation' && (
                       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-teal-950/70 text-teal-300 border border-teal-500/40">
-                        {rom.translationLanguage ? `${rom.translationLanguage}-Patch` : 'Übersetzung'}
+                        {rom.translationLanguage ? `${rom.translationLanguage}-Patch` : t('catalog.tagTranslation')}
                       </span>
                     )}
 
                     {/* Romhack Badge */}
                     {rom.editionType === 'romhack' && (
                       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-violet-950/70 text-violet-300 border border-violet-500/40">
-                        ⚡ {rom.hackDetails || 'Romhack'}
+                        ⚡ {rom.hackDetails || t('catalog.tagHack')}
                       </span>
                     )}
 
@@ -411,7 +422,7 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
 
                     {rom.isTop200 && (
                       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-950/60 text-amber-300 border border-amber-500/40">
-                        Top 200 #{rom.top200Rank}
+                        {t('catalog.tagTop200', { rank: rom.top200Rank || 0 })}
                       </span>
                     )}
 
@@ -426,7 +437,7 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
                         onClick={onSelectDuplicateView}
                         className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-950/60 text-rose-300 border border-rose-500/40 hover:bg-rose-900/60 cursor-pointer"
                       >
-                        {rom.isExactHashDuplicate ? 'Klon' : 'Revision'}
+                        {rom.isExactHashDuplicate ? (language === 'de' ? 'Klon' : 'Clone') : (language === 'de' ? 'Revision' : 'Revision')}
                       </button>
                     )}
 
@@ -474,7 +485,7 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
                     onClick={() => onDeleteRom(rom)}
                     className="px-2.5 py-1 rounded text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-xs transition cursor-pointer"
                   >
-                    Löschen
+                    {t('catalog.btnDelete')}
                   </button>
                 ) : (
                   <>
@@ -482,9 +493,9 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
                       <button
                         onClick={() => onRenameRom(rom)}
                         className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-900/50 hover:bg-slate-800 text-slate-200 border border-white/15 backdrop-blur-xs transition cursor-pointer"
-                        title="Einzeln umbenennen"
+                        title={t('catalog.btnRename')}
                       >
-                        Umbenennen
+                        {t('catalog.btnRename')}
                       </button>
                     )}
 
@@ -492,7 +503,7 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
                       <button
                         onClick={() => onMoveRom(rom)}
                         className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-900/50 hover:bg-slate-800 text-slate-200 border border-white/15 backdrop-blur-xs transition cursor-pointer"
-                        title="Einzeln in Systemordner verschieben"
+                        title={t('catalog.btnMove')}
                       >
                         /{rom.targetFolder}/
                       </button>
@@ -503,7 +514,7 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
                         onClick={() => onDeleteRom(rom)}
                         className="px-2.5 py-1 rounded text-xs font-semibold bg-rose-950/60 hover:bg-rose-900/60 text-rose-300 border border-rose-500/40 transition cursor-pointer"
                       >
-                        Löschen
+                        {t('catalog.btnDelete')}
                       </button>
                     )}
                   </>
@@ -518,7 +529,9 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
       {totalPages > 1 && (
         <div className="flex items-center justify-between px-5 py-3 bg-slate-950/50 border-t border-white/10 text-xs text-slate-300">
           <span className="text-[11px] text-slate-400">
-            Seite {safeCurrentPage} von {totalPages} ({roms.length} ROMs insgesamt)
+            {language === 'de'
+              ? `Seite ${safeCurrentPage} von ${totalPages} (${roms.length} ROMs insgesamt)`
+              : `Page ${safeCurrentPage} of ${totalPages} (${roms.length} ROMs total)`}
           </span>
           <div className="flex items-center gap-2">
             <button
@@ -530,7 +543,7 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
               }}
               className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold cursor-pointer"
             >
-              ◀ Vorherige Seite
+              ◀ {language === 'de' ? 'Vorherige Seite' : 'Previous Page'}
             </button>
             <button
               type="button"
@@ -541,7 +554,7 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
               }}
               className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold cursor-pointer"
             >
-              Nächste Seite ▶
+              {language === 'de' ? 'Nächste Seite' : 'Next Page'} ▶
             </button>
           </div>
         </div>
@@ -549,3 +562,4 @@ export const RomCatalog: React.FC<RomCatalogProps> = ({
     </div>
   );
 };
+

@@ -1,5 +1,6 @@
 import React from 'react';
 import { DuplicateGroup, RomFile } from '../types';
+import { useTranslation } from '../i18n';
 
 interface DuplicateManagerProps {
   groups: DuplicateGroup[];
@@ -28,15 +29,18 @@ export const DuplicateManager: React.FC<DuplicateManagerProps> = ({
   onDeleteSingleJunk,
   onDownloadScript,
 }) => {
+  const { t, language } = useTranslation();
   const totalDuplicates = groups.reduce((acc, g) => acc + (g.files.length - 1), 0);
   const totalSafeToDelete = totalDuplicates + junkFiles.length;
 
   if (groups.length === 0 && junkFiles.length === 0) {
     return (
       <div className="text-center py-12 px-4 frosted-glass rounded-2xl m-6 text-slate-100">
-        <h3 className="text-sm font-bold text-white">Keine Duplikate oder Mülldateien gefunden</h3>
+        <h3 className="text-sm font-bold text-white">
+          {language === 'de' ? 'Keine Duplikate oder Mülldateien gefunden' : 'No duplicates or junk files found'}
+        </h3>
         <p className="text-xs text-slate-300 mt-1">
-          Alle gescannten ROMs sind eindeutig und sauber.
+          {language === 'de' ? 'Alle gescannten ROMs sind eindeutig und sauber.' : 'All scanned ROMs are unique and clean.'}
         </p>
       </div>
     );
@@ -48,12 +52,18 @@ export const DuplicateManager: React.FC<DuplicateManagerProps> = ({
       <div className="p-4 rounded-2xl frosted-glass flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
         <div>
           <h2 className="text-sm font-bold text-white">
-            {groups.length > 0 && `${groups.length} Duplikat-Gruppen (${totalDuplicates} Kopien)`}
+            {groups.length > 0 && (language === 'de' 
+              ? `${groups.length} Duplikat-Gruppen (${totalDuplicates} Kopien)`
+              : `${groups.length} Duplicate Groups (${totalDuplicates} copies)`)}
             {groups.length > 0 && junkFiles.length > 0 && ' & '}
-            {junkFiles.length > 0 && `${junkFiles.length} Cache-/Mülldateien`}
+            {junkFiles.length > 0 && (language === 'de'
+              ? `${junkFiles.length} Cache-/Mülldateien`
+              : `${junkFiles.length} Cache/Junk Files`)}
           </h2>
           <p className="text-xs text-slate-300 mt-0.5">
-            Überflüssige Duplikate und Cache-Dateien (.db, Thumbs, Temp) können sicher gelöscht werden.
+            {language === 'de'
+              ? 'Überflüssige Duplikate und Cache-Dateien (.db, Thumbs, Temp) können sicher gelöscht werden.'
+              : 'Redundant duplicates and cache files (.db, Thumbs, Temp) can be deleted safely.'}
           </p>
         </div>
 
@@ -64,7 +74,7 @@ export const DuplicateManager: React.FC<DuplicateManagerProps> = ({
               onClick={onBulkMoveDuplicatesToFolder}
               className="px-3 py-1.5 rounded-lg text-xs font-bold bg-violet-600 hover:bg-violet-500 text-white shadow-md shadow-violet-900/30 transition cursor-pointer"
             >
-              In _Duplicates/ sichern
+              {language === 'de' ? 'In _Duplicates/ sichern' : 'Backup to _Duplicates/'}
             </button>
           )}
 
@@ -73,7 +83,7 @@ export const DuplicateManager: React.FC<DuplicateManagerProps> = ({
             onClick={onBulkDeleteDuplicates}
             className="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-950/70 hover:bg-rose-900/70 text-rose-300 border border-rose-500/40 shadow-xs transition cursor-pointer"
           >
-            Alle löschen ({totalSafeToDelete})
+            {language === 'de' ? `Alle löschen (${totalSafeToDelete})` : `Delete All (${totalSafeToDelete})`}
           </button>
 
           <button
@@ -81,7 +91,7 @@ export const DuplicateManager: React.FC<DuplicateManagerProps> = ({
             onClick={onDownloadScript}
             className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-900/50 hover:bg-slate-800 text-slate-200 border border-white/15 shadow-xs backdrop-blur-md transition cursor-pointer"
           >
-            PowerShell-Skript
+            {language === 'de' ? 'PowerShell-Skript' : 'PowerShell Script'}
           </button>
         </div>
       </div>
@@ -92,10 +102,12 @@ export const DuplicateManager: React.FC<DuplicateManagerProps> = ({
           <div className="px-4 py-2.5 bg-rose-950/60 border-b border-rose-500/30 flex flex-wrap items-center justify-between gap-2">
             <div>
               <span className="text-xs font-bold text-rose-200">
-                Gefundene Cache- & Mülldateien ({junkFiles.length})
+                {language === 'de' ? `Gefundene Cache- & Mülldateien (${junkFiles.length})` : `Found Cache & Junk Files (${junkFiles.length})`}
               </span>
               <p className="text-[11px] text-rose-300/80">
-                Diese Dateien (.db, Thumbs.db, Cache-Datenbanken) sind keine Spiele und können bedenkenlos entfernt werden.
+                {language === 'de'
+                  ? 'Diese Dateien (.db, Thumbs.db, Cache-Datenbanken) sind keine Spiele und können bedenkenlos entfernt werden.'
+                  : 'These files (.db, Thumbs.db, cache databases) are not games and can safely be removed.'}
               </p>
             </div>
             {onBulkDeleteJunk && (
@@ -104,7 +116,7 @@ export const DuplicateManager: React.FC<DuplicateManagerProps> = ({
                 onClick={onBulkDeleteJunk}
                 className="px-2.5 py-1 rounded text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-950/50 transition cursor-pointer"
               >
-                Nur Mülldateien löschen ({junkFiles.length})
+                {language === 'de' ? `Nur Mülldateien löschen (${junkFiles.length})` : `Delete Junk Only (${junkFiles.length})`}
               </button>
             )}
           </div>
@@ -121,7 +133,7 @@ export const DuplicateManager: React.FC<DuplicateManagerProps> = ({
                       {file.filename}
                     </span>
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-950/70 text-rose-300 font-bold border border-rose-500/30">
-                      {file.junkReason || 'System-/Cache-Müll'}
+                      {file.junkReason || (language === 'de' ? 'System-/Cache-Müll' : 'System/Cache Junk')}
                     </span>
                   </div>
                   <div className="text-[11px] text-slate-400 font-mono">
@@ -134,7 +146,7 @@ export const DuplicateManager: React.FC<DuplicateManagerProps> = ({
                     onClick={() => onDeleteSingleJunk(file)}
                     className="px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-950/60 hover:bg-rose-900/60 text-rose-300 border border-rose-500/30 transition cursor-pointer self-end sm:self-center"
                   >
-                    Löschen
+                    {language === 'de' ? 'Löschen' : 'Delete'}
                   </button>
                 )}
               </div>
@@ -159,18 +171,18 @@ export const DuplicateManager: React.FC<DuplicateManagerProps> = ({
                   </span>
                   <span className="text-xs font-bold text-white">{group.canonicalTitle}</span>
                   <span className="text-xs text-slate-400">
-                    ({group.files.length} Dateien)
+                    ({group.files.length} {language === 'de' ? 'Dateien' : 'files'})
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
                   {group.isExactHashMatch ? (
                     <span className="text-[10px] font-semibold text-emerald-400 font-mono">
-                      Identischer Hash (Bit-Klon)
+                      {language === 'de' ? 'Identischer Hash (Bit-Klon)' : 'Identical Hash (Bit Clone)'}
                     </span>
                   ) : (
                     <span className="text-[10px] text-amber-400 font-medium">
-                      Unterschiedliche Revisionen
+                      {language === 'de' ? 'Unterschiedliche Revisionen' : 'Different Revisions'}
                     </span>
                   )}
                 </div>
@@ -195,11 +207,11 @@ export const DuplicateManager: React.FC<DuplicateManagerProps> = ({
                           </span>
                           {isKept ? (
                             <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-300 border border-emerald-500/30">
-                              Original
+                              {language === 'de' ? 'Original' : 'Original'}
                             </span>
                           ) : (
                             <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-950/60 text-rose-300 border border-rose-500/30">
-                              Duplikat
+                              {language === 'de' ? 'Duplikat' : 'Duplicate'}
                             </span>
                           )}
                         </div>
@@ -222,7 +234,9 @@ export const DuplicateManager: React.FC<DuplicateManagerProps> = ({
                             : 'border-white/15 bg-slate-900/50 text-slate-300 hover:bg-slate-800 backdrop-blur-xs'
                         }`}
                       >
-                        {isKept ? 'Behalten' : 'Als Behalten wählen'}
+                        {isKept 
+                          ? (language === 'de' ? 'Behalten' : 'Keep') 
+                          : (language === 'de' ? 'Als Behalten wählen' : 'Set as keep')}
                       </button>
                     </div>
                   );
@@ -235,3 +249,4 @@ export const DuplicateManager: React.FC<DuplicateManagerProps> = ({
     </div>
   );
 };
+

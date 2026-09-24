@@ -21,6 +21,7 @@ import { CollectionExportModal } from './components/CollectionExportModal';
 import { UndoModal } from './components/UndoModal';
 import { SideFileCleanupModal } from './components/SideFileCleanupModal';
 import { Cover3dStudioView } from './components/Cover3dStudioView';
+import { BiosStudioView } from './components/BiosStudioView';
 import {
   RomFile,
   ScanFilters,
@@ -64,8 +65,10 @@ import {
   ExternalLink,
   Disc,
 } from 'lucide-react';
+import { useTranslation } from './i18n';
 
 export default function App() {
+  const { t, language } = useTranslation();
   const [roms, setRoms] = useState<RomFile[]>([]);
   const [folderName, setFolderName] = useState<string | null>(null);
   const [directoryHandle, setDirectoryHandle] = useState<any | null>(null);
@@ -89,7 +92,7 @@ export default function App() {
   };
 
   // Active filters
-  const [currentView, setCurrentView] = useState<'manager' | 'landing' | 'cover3d'>('landing');
+  const [currentView, setCurrentView] = useState<'manager' | 'landing' | 'cover3d' | 'bios'>('landing');
   const [filters, setFilters] = useState<ScanFilters>({
     selectedPlatforms: PLATFORMS.map((p) => p.id),
     selectedGenres: [],
@@ -342,7 +345,7 @@ export default function App() {
       setPendingVerificationRoms(scannedRoms);
       setPendingFolderName(dirHandle.name);
       setIsSystemVerificationModalOpen(true);
-      showToast(`${scannedRoms.length} Dateien eingelesen. Bitte Systeme kurz überprüfen.`, 'info');
+      showToast(t('toast.filesScanned', { count: scannedRoms.length }), 'info');
     } catch (err: any) {
       if (err.name === 'AbortError') {
         return;
@@ -351,7 +354,7 @@ export default function App() {
         throw err;
       }
       console.error('Fehler beim Öffnen des Ordners:', err);
-      showToast(`Fehler beim Ordnerzugriff: ${err.message || err}`, 'warning');
+      showToast(t('toast.folderAccessError', { error: err.message || err }), 'warning');
     } finally {
       setIsScanning(false);
       setScanProgress(null);
@@ -371,7 +374,7 @@ export default function App() {
       setDirectoryHandle(null);
 
       // Extract top folder name from webkitRelativePath if available
-      let detectedName = 'Ausgewählte ROMs';
+      let detectedName = language === 'de' ? 'Ausgewählte ROMs' : 'Selected ROMs';
       const first = fileList[0];
       const relPath = (first as any).webkitRelativePath;
       if (relPath && relPath.includes('/')) {
@@ -379,7 +382,7 @@ export default function App() {
       } else if (fileList.length === 1) {
         detectedName = first.name;
       } else {
-        detectedName = `${fileList.length} ROM-Dateien`;
+        detectedName = `${fileList.length} ROMs`;
       }
 
       setFolderName(detectedName);
@@ -393,10 +396,10 @@ export default function App() {
       setPendingVerificationRoms(scannedRoms);
       setPendingFolderName(detectedName);
       setIsSystemVerificationModalOpen(true);
-      showToast(`${scannedRoms.length} Dateien eingelesen. Bitte Systeme kurz überprüfen.`, 'info');
+      showToast(t('toast.filesScanned', { count: scannedRoms.length }), 'info');
     } catch (err: any) {
       console.error('Fehler beim Scannen der Dateien:', err);
-      showToast(`Fehler beim Scannen: ${err.message || err}`, 'warning');
+      showToast(t('toast.scanError', { error: err.message || err }), 'warning');
     } finally {
       setIsScanning(false);
       setScanProgress(null);
@@ -420,7 +423,11 @@ export default function App() {
     setCurrentView('manager');
     const presetName = HANDHELD_PRESETS.find((p) => p.id === preset)?.name || 'Standard';
     showToast(
-      `${updatedRoms.length} ROMs bestätigt (${pendingFolderName}) – Preset: ${presetName}.`,
+      t('toast.confirmedPreset', {
+        count: updatedRoms.length,
+        folder: pendingFolderName || 'ROMs',
+        preset: presetName,
+      }),
       'success'
     );
   };
@@ -429,13 +436,13 @@ export default function App() {
     setCurrentPreset(newPreset);
     setRoms((prev) => applyHandheldPresetToRoms(prev, newPreset));
     const presetName = HANDHELD_PRESETS.find((p) => p.id === newPreset)?.name || 'Standard';
-    showToast(`Handheld-Ordnerstruktur auf "${presetName}" umgestellt!`, 'info');
+    showToast(t('toast.presetChanged', { preset: presetName }), 'info');
   };
 
   const handleRegionPrefChange = (newPref: RegionPreference) => {
     setRegionPref(newPref);
     setRoms((prev) => analyzeDuplicateGroups(prev, newPref));
-    showToast('1G1R-Regionspräferenz aktualisiert.', 'info');
+    showToast(t('toast.regionPrefUpdated'), 'info');
   };
 
   const handleCancelSystemVerification = () => {
@@ -465,7 +472,7 @@ export default function App() {
       return analyzeDuplicateGroups(updated);
     });
 
-    showToast(`Plattform geändert auf ${platMeta?.name || newPlatform}.`, 'success');
+    showToast(t('toast.platformChanged', { platform: platMeta?.name || newPlatform }), 'success');
   };
 
   // Handler: Batch update platform for all current ROMs
@@ -482,7 +489,12 @@ export default function App() {
       return analyzeDuplicateGroups(updated);
     });
 
-    showToast(`Alle ${roms.length} ROMs wurden auf ${platMeta?.name || newPlatform} umgestellt.`, 'success');
+    showToast(
+      language === 'de'
+        ? `Alle ${roms.length} ROMs wurden auf ${platMeta?.name || newPlatform} umgestellt.`
+        : `All ${roms.length} ROMs assigned to ${platMeta?.name || newPlatform}.`,
+      'success'
+    );
   };
 
   // Handler: 1-Click Fully-Automated Multi-Disc & M3U Organization ("Ooppsss, mach alles automatisch!")
@@ -519,12 +531,14 @@ export default function App() {
 
       setShowAutoFixSuccessModal(true);
       showToast(
-        `🎉 Vollautomatisch erledigt! Alle ${multiDiscSets.length} Multi-Disk Spiele wurden in Unterordner sortiert und M3U-Playlists erstellt!`,
+        language === 'de'
+          ? `🎉 Vollautomatisch erledigt! Alle ${multiDiscSets.length} Multi-Disk Spiele wurden in Unterordner sortiert und M3U-Playlists erstellt!`
+          : `🎉 Completed automatically! All ${multiDiscSets.length} multi-disc games sorted into subfolders and M3U playlists created!`,
         'success'
       );
     } catch (err: any) {
       console.error('Fehler bei automatischer Multi-Disk Organisation:', err);
-      showToast(`Fehler: ${err?.message || err}`, 'error');
+      showToast(`${language === 'de' ? 'Fehler' : 'Error'}: ${err?.message || err}`, 'error');
     } finally {
       setIsAutoFixingMultiDisc(false);
       setAutoFixProgress(null);
@@ -551,9 +565,9 @@ export default function App() {
   const handleRenameRom = (rom: RomFile) => {
     setConfirmDialog({
       isOpen: true,
-      title: 'ROM umbenennen',
-      message: `Möchtest du "${rom.filename}" in den No-Intro Standardnamen "${rom.cleanFilename}" umbenennen?`,
-      confirmLabel: 'Jetzt umbenennen',
+      title: t('confirm.renameTitle'),
+      message: t('confirm.renameMsg', { oldName: rom.filename, newName: rom.cleanFilename }),
+      confirmLabel: t('confirm.renameConfirm'),
       confirmVariant: 'primary',
       action: async () => {
         if (directoryHandle) {
@@ -589,9 +603,9 @@ export default function App() {
   const handleMoveRom = (rom: RomFile) => {
     setConfirmDialog({
       isOpen: true,
-      title: 'In Plattform-Ordner verschieben',
-      message: `Soll "${rom.filename}" in das Verzeichnis "/${rom.targetFolder}/" verschoben werden?`,
-      confirmLabel: 'Verschieben',
+      title: t('confirm.moveTitle'),
+      message: t('confirm.moveMsg', { file: rom.filename, folder: rom.targetFolder }),
+      confirmLabel: t('confirm.moveConfirm'),
       confirmVariant: 'primary',
       action: async () => {
         if (directoryHandle) {
@@ -625,9 +639,9 @@ export default function App() {
   const handleDeleteRom = (rom: RomFile) => {
     setConfirmDialog({
       isOpen: true,
-      title: 'ROM-Datei löschen',
-      message: `Möchtest du die Datei "${rom.filename}" (${rom.originalPath}) wirklich unwiderruflich löschen?`,
-      confirmLabel: 'Unwiderruflich löschen',
+      title: t('confirm.deleteRomTitle'),
+      message: t('confirm.deleteRomMsg', { file: rom.filename, path: rom.originalPath }),
+      confirmLabel: t('confirm.deleteRomConfirm'),
       confirmVariant: 'danger',
       action: async () => {
         if (directoryHandle && rom.fileHandle) {
@@ -650,15 +664,15 @@ export default function App() {
     );
 
     if (duplicatesToMove.length === 0) {
-      showToast('Keine überflüssigen Duplikate zum Verschieben markiert.', 'info');
+      showToast(t('toast.noDuplicates'), 'info');
       return;
     }
 
     setConfirmDialog({
       isOpen: true,
-      title: 'Duplikate in Sicherungsordner verschieben',
-      message: `Es wurden ${duplicatesToMove.length} überflüssige Duplikate gefunden. Möchtest du diese sicher in den Ordner "_Duplicates/" verschieben?`,
-      confirmLabel: `${duplicatesToMove.length} Duplikate verschieben`,
+      title: t('confirm.moveDuplicatesTitle'),
+      message: t('confirm.moveDuplicatesMsg', { count: duplicatesToMove.length }),
+      confirmLabel: t('confirm.moveDuplicatesConfirm', { count: duplicatesToMove.length }),
       confirmVariant: 'primary',
       action: async () => {
         if (directoryHandle) {
@@ -687,7 +701,7 @@ export default function App() {
           )
         );
         setConfirmDialog((c) => ({ ...c, isOpen: false }));
-        showToast(`${duplicatesToMove.length} Duplikate wurden nach "_Duplicates/" verschoben.`, 'success');
+        showToast(t('toast.duplicatesMoved', { count: duplicatesToMove.length }), 'success');
       },
     });
   };
@@ -699,15 +713,15 @@ export default function App() {
     );
 
     if (filesToDelete.length === 0) {
-      showToast('Keine überflüssigen Duplikate oder Mülldateien zum Löschen vorhanden.', 'info');
+      showToast(t('toast.noDuplicatesOrJunk'), 'info');
       return;
     }
 
     setConfirmDialog({
       isOpen: true,
-      title: 'Duplikate & Mülldateien löschen',
-      message: `ACHTUNG: Dies wird ${filesToDelete.length} redundante Kopien und Cache-/Systemdateien (.db, Thumbs, etc.) löschen. Empfohlene ROMs werden behalten. Fortfahren?`,
-      confirmLabel: `${filesToDelete.length} Dateien löschen`,
+      title: t('confirm.deleteDuplicatesTitle'),
+      message: t('confirm.deleteDuplicatesMsg', { count: filesToDelete.length }),
+      confirmLabel: t('confirm.deleteDuplicatesConfirm', { count: filesToDelete.length }),
       confirmVariant: 'danger',
       action: async () => {
         if (directoryHandle) {
@@ -723,7 +737,7 @@ export default function App() {
           prev.filter((r) => !((r.isDuplicate && r.recommendedAction === 'delete') || r.isJunk))
         );
         setConfirmDialog((c) => ({ ...c, isOpen: false }));
-        showToast(`${filesToDelete.length} Duplikate & Mülldateien erfolgreich entfernt.`, 'success');
+        showToast(t('toast.duplicatesAndJunkDeleted', { count: filesToDelete.length }), 'success');
       },
     });
   };
@@ -732,15 +746,15 @@ export default function App() {
   const handleBulkDeleteJunk = () => {
     const junkFiles = roms.filter((r) => r.isJunk);
     if (junkFiles.length === 0) {
-      showToast('Keine Cache- oder Mülldateien vorhanden.', 'info');
+      showToast(t('toast.noJunkFiles'), 'info');
       return;
     }
 
     setConfirmDialog({
       isOpen: true,
-      title: 'Alle Cache- & Mülldateien löschen',
-      message: `Möchtest du alle ${junkFiles.length} erkannten Cache- und Systemdateien (z.B. .db, Thumbs.db, Temp) sicher aus deiner Sammlung löschen?`,
-      confirmLabel: `${junkFiles.length} Mülldateien löschen`,
+      title: t('confirm.deleteJunkTitle'),
+      message: t('confirm.deleteJunkMsg', { count: junkFiles.length }),
+      confirmLabel: t('confirm.deleteJunkConfirm', { count: junkFiles.length }),
       confirmVariant: 'danger',
       action: async () => {
         if (directoryHandle) {
@@ -754,7 +768,7 @@ export default function App() {
         }
         setRoms((prev) => prev.filter((r) => !r.isJunk));
         setConfirmDialog((c) => ({ ...c, isOpen: false }));
-        showToast(`${junkFiles.length} Cache- & Mülldateien erfolgreich gelöscht.`, 'success');
+        showToast(t('toast.junkFilesDeleted', { count: junkFiles.length }), 'success');
       },
     });
   };
@@ -762,15 +776,15 @@ export default function App() {
   // Handler: Batch Rename ROMs in one single run
   const handleBatchRename = (targets: RomFile[]) => {
     if (targets.length === 0) {
-      showToast('Keine unbenannten ROMs zum Bearbeiten vorhanden.', 'info');
+      showToast(t('toast.noUncleanRoms'), 'info');
       return;
     }
 
     setConfirmDialog({
       isOpen: true,
-      title: `${targets.length} ROMs in einem Rutsch umbenennen`,
-      message: `Möchtest du alle ${targets.length} ROMs auf den sauberen No-Intro Standard umbenennen? Die Dateien bleiben in ihrem aktuellen Ordner.`,
-      confirmLabel: `Jetzt alle ${targets.length} umbenennen`,
+      title: t('confirm.batchRenameTitle', { count: targets.length }),
+      message: t('confirm.batchRenameMsg', { count: targets.length }),
+      confirmLabel: t('confirm.batchRenameConfirm', { count: targets.length }),
       confirmVariant: 'primary',
       action: async () => {
         setConfirmDialog((c) => ({ ...c, isOpen: false }));
@@ -782,7 +796,7 @@ export default function App() {
             current: i + 1,
             total: targets.length,
             filename: `${target.filename} → ${target.cleanFilename}`,
-            actionTitle: 'Stapel-Umbenennung läuft...',
+            actionTitle: t('batchProgress.renameTitle'),
           });
 
           if (directoryHandle) {
@@ -820,12 +834,12 @@ export default function App() {
 
         if (directoryHandle) {
           showToast(
-            `${successCount} von ${targets.length} ROMs erfolgreich in einem Rutsch umbenannt!`,
+            t('toast.batchRenameSuccess', { success: successCount, total: targets.length }),
             'success'
           );
         } else {
           showToast(
-            `${successCount} ROMs im Katalog umbenannt! PowerShell-/Bash-Skripte stehen zum Download bereit.`,
+            t('toast.batchRenameScript', { success: successCount }),
             'success'
           );
         }
@@ -836,15 +850,23 @@ export default function App() {
   // Handler: Batch Move ROMs to system folders
   const handleBatchMoveToFolders = (targets: RomFile[]) => {
     if (targets.length === 0) {
-      showToast('Alle ROMs befinden sich bereits in ihren Systemordnern.', 'info');
+      showToast(
+        language === 'de'
+          ? 'Alle ROMs befinden sich bereits in ihren Systemordnern.'
+          : 'All ROMs are already located in their system folders.',
+        'info'
+      );
       return;
     }
 
     setConfirmDialog({
       isOpen: true,
-      title: `${targets.length} ROMs in Systemordner verschieben`,
-      message: `Möchtest du alle ${targets.length} ROMs in ihre jeweiligen System-Unterordner (z.B. /${targets[0]?.targetFolder}/) verschieben?`,
-      confirmLabel: `Jetzt alle ${targets.length} verschieben`,
+      title: t('confirm.batchMoveTitle', { count: targets.length }),
+      message: t('confirm.batchMoveMsg', {
+        count: targets.length,
+        exampleFolder: targets[0]?.targetFolder || 'SNES',
+      }),
+      confirmLabel: t('confirm.batchMoveConfirm', { count: targets.length }),
       confirmVariant: 'primary',
       action: async () => {
         setConfirmDialog((c) => ({ ...c, isOpen: false }));
@@ -856,7 +878,7 @@ export default function App() {
             current: i + 1,
             total: targets.length,
             filename: `${target.filename} → /${target.targetFolder}/`,
-            actionTitle: 'Dateien werden in Systemordner verschoben...',
+            actionTitle: t('batchProgress.moveTitle'),
           });
 
           if (directoryHandle) {
@@ -895,12 +917,16 @@ export default function App() {
 
         if (directoryHandle) {
           showToast(
-            `${successCount} von ${targets.length} ROMs erfolgreich in Systemordner verschoben!`,
+            language === 'de'
+              ? `${successCount} von ${targets.length} ROMs erfolgreich in Systemordner verschoben!`
+              : `${successCount} of ${targets.length} ROMs moved to system folders!`,
             'success'
           );
         } else {
           showToast(
-            `${successCount} ROMs geordnet! PowerShell-/Bash-Skripte stehen zum Download bereit.`,
+            language === 'de'
+              ? `${successCount} ROMs geordnet! Skripte stehen zum Download bereit.`
+              : `${successCount} ROMs organized! Cleanup scripts ready for download.`,
             'success'
           );
         }
@@ -911,15 +937,15 @@ export default function App() {
   // Handler: Batch Organize ALL (Rename + Move in 1 go)
   const handleBatchOrganize = (targets: RomFile[]) => {
     if (targets.length === 0) {
-      showToast('Alle ROMs sind bereits sauber benannt und sortiert.', 'info');
+      showToast(t('toast.allOrganized'), 'info');
       return;
     }
 
     setConfirmDialog({
       isOpen: true,
-      title: `${targets.length} ROMs in einem Rutsch ordnen`,
-      message: `Möchtest du alle ${targets.length} ROMs vollautomatisch in einem Rutsch nach No-Intro Standard umbenennen UND in die plattformspezifischen Ordner einsortieren?`,
-      confirmLabel: `Jetzt alles in einem Rutsch ordnen (${targets.length})`,
+      title: t('confirm.batchOrganizeTitle', { count: targets.length }),
+      message: t('confirm.batchOrganizeMsg', { count: targets.length }),
+      confirmLabel: t('confirm.batchOrganizeConfirm', { count: targets.length }),
       confirmVariant: 'primary',
       action: async () => {
         setConfirmDialog((c) => ({ ...c, isOpen: false }));
@@ -931,7 +957,7 @@ export default function App() {
             current: i + 1,
             total: targets.length,
             filename: `${target.filename} → /${target.targetFolder}/${target.cleanFilename}`,
-            actionTitle: 'Vollautomatisches Ordnen läuft...',
+            actionTitle: t('batchProgress.organizeTitle'),
           });
 
           if (directoryHandle) {
@@ -974,12 +1000,12 @@ export default function App() {
 
         if (directoryHandle) {
           showToast(
-            `Perfekt! ${successCount} ROMs wurden in einem Rutsch umbenannt und einsortiert.`,
+            t('toast.batchOrganizeSuccess', { count: successCount }),
             'success'
           );
         } else {
           showToast(
-            `${successCount} ROMs im Katalog geordnet! PowerShell-/Bash-Skripte stehen zum Download bereit.`,
+            t('toast.batchOrganizeScript', { count: successCount }),
             'success'
           );
         }
@@ -1086,7 +1112,12 @@ export default function App() {
         const writable = await fileHandle.createWritable();
         await writable.write(file);
         await writable.close();
-        showToast(`Cover für "${rom.canonicalTitle}" als ${targetCoverName} in Covers/ gespeichert!`, 'success');
+        showToast(
+          language === 'de'
+            ? `Cover für "${rom.canonicalTitle}" als ${targetCoverName} in Covers/ gespeichert!`
+            : `Cover for "${rom.canonicalTitle}" saved as ${targetCoverName} in Covers/!`,
+          'success'
+        );
         return;
       } catch (err) {
         console.warn('Direct cover write warning:', err);
@@ -1095,7 +1126,12 @@ export default function App() {
 
     setStudioInitialCoverFile({ file, rom });
     setCurrentView('cover3d');
-    showToast(`Cover für "${rom.canonicalTitle}" im 3D Box Studio geöffnet!`, 'info');
+    showToast(
+      language === 'de'
+        ? `Cover für "${rom.canonicalTitle}" im 3D Box Studio geöffnet!`
+        : `Cover for "${rom.canonicalTitle}" opened in 3D Box Studio!`,
+      'info'
+    );
   };
 
   // Handler: Isolate Top 200 into '_Top200' folder
@@ -1103,9 +1139,9 @@ export default function App() {
     const top200Roms = roms.filter((r) => r.isTop200);
     setConfirmDialog({
       isOpen: true,
-      title: 'Top 200 ROMs ordnen',
-      message: `Möchtest du alle ${top200Roms.length} erkannten Top 200 Spiele in den Ordner "_Top200/<Plattform>/" sortieren?`,
-      confirmLabel: 'Top 200 sortieren',
+      title: t('confirm.isolateTop200Title', { count: top200Roms.length }),
+      message: t('confirm.isolateTop200Msg', { count: top200Roms.length }),
+      confirmLabel: t('confirm.isolateTop200Confirm', { count: top200Roms.length }),
       confirmVariant: 'primary',
       action: async () => {
         setRoms((prev) =>
@@ -1121,7 +1157,12 @@ export default function App() {
           })
         );
         setConfirmDialog((c) => ({ ...c, isOpen: false }));
-        showToast(`Alle ${top200Roms.length} Top 200 ROMs wurden markiert.`, 'success');
+        showToast(
+          language === 'de'
+            ? `Alle ${top200Roms.length} Top 200 ROMs wurden markiert.`
+            : `All ${top200Roms.length} Top 200 ROMs marked for sorting.`,
+          'success'
+        );
       },
     });
   };
@@ -1194,6 +1235,7 @@ export default function App() {
             onStartScan={() => setCurrentView('manager')}
             hasLoadedRoms={roms.length > 0}
             onOpenCover3dModal={() => setCurrentView('cover3d')}
+            onOpenBiosStudio={() => setCurrentView('bios')}
           />
         ) : currentView === 'cover3d' ? (
           /* Full-width 3D Cover Studio Workspace */
@@ -1203,6 +1245,12 @@ export default function App() {
             directoryHandle={directoryHandle}
             showToast={showToast}
             initialCoverFile={studioInitialCoverFile}
+          />
+        ) : currentView === 'bios' ? (
+          /* BIOS Studio & Organizer Workspace */
+          <BiosStudioView
+            onBackToManager={() => setCurrentView(roms.length > 0 ? 'manager' : 'landing')}
+            showToast={showToast}
           />
         ) : roms.length === 0 ? (
           /* Folder Picker & Pre-scan Filters Screen */
@@ -1234,11 +1282,16 @@ export default function App() {
                     </div>
                     <div>
                       <h3 className="text-sm sm:text-base font-bold text-white">
-                        Ooppsss, da hat es {multiDiscSets.length} {multiDiscSets.length === 1 ? 'Spiel' : 'Spiele'} mit mehreren Datenträgern!
+                        {t('multiDiscBanner.title', {
+                          count: multiDiscSets.length,
+                          gameWord: multiDiscSets.length === 1 ? t('multiDiscBanner.gameSingle') : t('multiDiscBanner.gamePlural'),
+                        })}
                       </h3>
                       <p className="text-xs text-slate-300 mt-1 max-w-2xl font-normal">
-                        Z. B. <strong className="text-white font-bold">{multiDiscSets.slice(0, 2).map((s) => s.gameTitle).join(', ')}</strong> ({multiDiscSets.reduce((sum, s) => sum + s.totalDiscs, 0)} Disketten/CDs insgesamt).
-                        Möchtest du, dass die App alle Disketten automatisch in Unterordner packt und die .m3u Playlists anlegt?
+                        {t('multiDiscBanner.desc', {
+                          samples: multiDiscSets.slice(0, 2).map((s) => s.gameTitle).join(', '),
+                          totalDiscs: multiDiscSets.reduce((sum, s) => sum + s.totalDiscs, 0),
+                        })}
                       </p>
                     </div>
                   </div>
@@ -1251,16 +1304,16 @@ export default function App() {
                       className="w-full md:w-auto px-5 py-3 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white shadow-md shadow-emerald-950/40 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                     >
                       <Zap className="w-4 h-4 text-amber-300 fill-amber-300" />
-                      <span>{isAutoFixingMultiDisc ? 'Wird ausgeführt...' : 'Alles vollautomatisch erledigen'}</span>
+                      <span>{isAutoFixingMultiDisc ? t('multiDiscBanner.autoFixRunning') : t('multiDiscBanner.autoFixBtn')}</span>
                     </button>
 
                     <button
                       id="btn-view-multidisc-details"
                       onClick={() => setIsMultiDiscModalOpen(true)}
                       className="px-3.5 py-3 rounded-xl text-xs font-medium text-slate-300 hover:text-white bg-slate-900/40 hover:bg-slate-800/70 border border-white/15 backdrop-blur-md transition shrink-0 cursor-pointer"
-                      title="Spiele im Detail ansehen"
+                      title={t('multiDiscBanner.detailsBtn')}
                     >
-                      Übersicht
+                      {t('multiDiscBanner.detailsBtn')}
                     </button>
                   </div>
                 </div>
@@ -1270,10 +1323,12 @@ export default function App() {
                 <div className="frosted-glass rounded-xl p-3.5 my-3 flex flex-wrap items-center justify-between gap-3 text-slate-100">
                   <div>
                     <h4 className="text-xs font-bold text-white">
-                      Multi-Disk & M3U ({multiDiscSets.length} Spiele)
+                      {language === 'de' ? `Multi-Disk & M3U (${multiDiscSets.length} Spiele)` : `Multi-Disc & M3U (${multiDiscSets.length} games)`}
                     </h4>
                     <p className="text-xs text-slate-400">
-                      Mehrteilige Disks und CDs zusammenfassen und M3U-Playlists erstellen.
+                      {language === 'de'
+                        ? 'Mehrteilige Disks und CDs zusammenfassen und M3U-Playlists erstellen.'
+                        : 'Group multi-part discs and CDs and generate clean M3U playlists.'}
                     </p>
                   </div>
                   <button
@@ -1281,7 +1336,7 @@ export default function App() {
                     onClick={() => setIsMultiDiscModalOpen(true)}
                     className="px-3 py-1.5 rounded-lg text-xs font-bold bg-violet-600 hover:bg-violet-500 text-white shadow-md shadow-violet-900/30 transition cursor-pointer"
                   >
-                    M3U-Playlists verwalten
+                    {language === 'de' ? 'M3U-Playlists verwalten' : 'Manage M3U Playlists'}
                   </button>
                 </div>
               )}
@@ -1322,10 +1377,10 @@ export default function App() {
                     <div className="frosted-glass border border-rose-500/30 rounded-2xl p-4 my-3 flex flex-wrap items-center justify-between gap-3 shadow-xl backdrop-blur-md text-slate-100">
                       <div>
                         <h4 className="text-xs font-bold text-rose-300">
-                          Erkannte Cache- & Mülldateien ({counts.junk})
+                          {t('junkBar.title', { count: counts.junk })}
                         </h4>
                         <p className="text-xs text-slate-300 mt-0.5 font-normal">
-                          Dateien wie .db, Thumbs.db oder temporäre Caches sind keine Spiele und können bedenkenlos gelöscht werden.
+                          {t('junkBar.desc')}
                         </p>
                       </div>
                       <button
@@ -1333,7 +1388,7 @@ export default function App() {
                         onClick={handleBulkDeleteJunk}
                         className="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-950/40 transition cursor-pointer"
                       >
-                        Alle {counts.junk} Mülldateien löschen
+                        {t('junkBar.btnDelete', { count: counts.junk })}
                       </button>
                     </div>
                   )}
@@ -1410,11 +1465,14 @@ export default function App() {
             </div>
             <div>
               <h3 className="text-sm font-bold text-white">
-                {batchProgress.actionTitle || 'Stapelverarbeitung läuft...'}
+                {batchProgress.actionTitle || t('batchProgress.defaultTitle')}
               </h3>
               <p className="text-xs text-slate-400 mt-1">
-                {batchProgress.current} von {batchProgress.total} verarbeitet (
-                {Math.round((batchProgress.current / Math.max(batchProgress.total, 1)) * 100)}%)
+                {t('batchProgress.processed', {
+                  current: batchProgress.current,
+                  total: batchProgress.total,
+                  percent: Math.round((batchProgress.current / Math.max(batchProgress.total, 1)) * 100),
+                })}
               </p>
             </div>
 
@@ -1434,7 +1492,7 @@ export default function App() {
             </p>
 
             <p className="text-[11px] text-slate-400">
-              Änderungen werden vollautomatisch in einem Rutsch angewendet...
+              {t('batchProgress.footerNote')}
             </p>
           </div>
         </div>
@@ -1449,7 +1507,7 @@ export default function App() {
             </div>
             <div>
               <h3 className="text-sm font-bold text-white">
-                Multi-Disk Spiele werden vollautomatisch sortiert...
+                {language === 'de' ? 'Multi-Disk Spiele werden vollautomatisch sortiert...' : 'Sorting multi-disc games automatically...'}
               </h3>
               <p className="text-xs text-slate-400 font-medium mt-1 truncate">
                 {autoFixProgress.title} ({autoFixProgress.current} von {autoFixProgress.total})
@@ -1464,7 +1522,9 @@ export default function App() {
               />
             </div>
             <p className="text-[11px] text-slate-400">
-              Disketten werden in Unterordner verschoben & M3U-Playlists geschrieben...
+              {language === 'de'
+                ? 'Disketten werden in Unterordner verschoben & M3U-Playlists geschrieben...'
+                : 'Moving discs to subfolders & creating M3U playlist files...'}
             </p>
           </div>
         </div>
@@ -1479,22 +1539,22 @@ export default function App() {
             </div>
 
             <h3 className="text-lg font-bold text-white">
-              Vollautomatisch erledigt!
+              {t('multiDiscSuccess.title')}
             </h3>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Alle <strong>{multiDiscSets.length} Multi-Disk Spiele</strong> wurden in eigene Unterordner verschoben und passende <code className="bg-slate-800/80 px-1 py-0.5 rounded text-white font-bold border border-white/15">.m3u</code>-Playlists wurden direkt erstellt.
+              {t('multiDiscSuccess.desc', { count: multiDiscSets.length })}
             </p>
 
             <div className="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-xs text-emerald-300 font-bold backdrop-blur-xs">
-              🎮 RetroArch & Batocera zeigen ab jetzt genau 1 sauberen Menüeintrag pro Spiel an!
+              {t('multiDiscSuccess.tip')}
             </div>
 
             <button
               onClick={() => setShowAutoFixSuccessModal(false)}
               className="w-full py-3 rounded-xl font-bold text-xs text-white bg-linear-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 transition cursor-pointer shadow-md shadow-violet-900/30"
             >
-              Klasse, weiter zur Sammlung
+              {t('multiDiscSuccess.btnContinue')}
             </button>
           </div>
         </div>
@@ -1511,10 +1571,10 @@ export default function App() {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-white">
-                    Direkten Schreibzugriff für Ordner erlauben
+                    {t('iframeAccess.title')}
                   </h3>
                   <p className="text-xs text-slate-400">
-                    {multiDiscSets.length} Multi-Disk Spiele vollautomatisch sortieren
+                    {t('iframeAccess.subtitle', { count: multiDiscSets.length })}
                   </p>
                 </div>
               </div>
@@ -1528,11 +1588,10 @@ export default function App() {
 
             <div className="p-4 rounded-xl bg-violet-950/40 border border-violet-500/30 text-xs text-slate-300 space-y-2 leading-relaxed backdrop-blur-xs">
               <p className="font-bold text-violet-300">
-                Damit Chrome Unterordner anlegen und Disketten verschieben darf:
+                {t('iframeAccess.noteTitle')}
               </p>
               <p>
-                Im eingebetteten Vorschaufenster verweigert Google aus Sicherheitsgründen den Festplatten-Schreibzugriff.
-                Öffne die App einfach in einem <strong>eigenen Tab</strong> – dort darf Chrome die Ordner und Playlists mit 1 Klick vollautomatisch schreiben!
+                {t('iframeAccess.noteText')}
               </p>
             </div>
 
@@ -1545,12 +1604,12 @@ export default function App() {
                 className="w-full py-3 px-4 rounded-xl font-bold text-sm text-white bg-linear-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 shadow-lg shadow-violet-900/40 transition flex items-center justify-center gap-2 cursor-pointer"
               >
                 <ExternalLink className="w-4 h-4" />
-                <span>In eigenem Tab öffnen (100% Vollautomatisch)</span>
+                <span>{t('iframeAccess.btnOpenTab')}</span>
               </button>
 
               <div className="relative flex py-1 items-center">
                 <div className="grow border-t border-white/10"></div>
-                <span className="shrink mx-3 text-[11px] text-slate-500 font-medium">ODER</span>
+                <span className="shrink mx-3 text-[11px] text-slate-500 font-medium">{t('iframeAccess.or')}</span>
                 <div className="grow border-t border-white/10"></div>
               </div>
 
@@ -1559,11 +1618,11 @@ export default function App() {
                   const batContent = generateStandaloneMultiDiscBat(multiDiscSets, true);
                   downloadScriptFile(batContent, 'MultiDisk_Vollautomatisch.bat');
                   setShowIframeAccessModal(false);
-                  showToast('1-Klick Datei heruntergeladen! Doppelklick genügt.', 'success');
+                  showToast(t('toast.oneClickDownloaded'), 'success');
                 }}
                 className="w-full py-2.5 px-4 rounded-xl font-bold text-xs text-slate-200 bg-slate-900/50 hover:bg-slate-800 border border-white/15 backdrop-blur-md transition flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>⚡ Windows 1-Klick Batch herunterladen (Doppelklick genügt)</span>
+                <span>{t('iframeAccess.btnDownloadBat')}</span>
               </button>
             </div>
           </div>
@@ -1608,7 +1667,7 @@ export default function App() {
         currentRoms={roms}
         onRomsRestored={(restoredRoms) => {
           setRoms(analyzeDuplicateGroups(restoredRoms, regionPref));
-          showToast('Wiederherstellung erfolgreich abgeschlossen!', 'success');
+          showToast(t('toast.restoreSuccess'), 'success');
         }}
       />
 
@@ -1620,7 +1679,7 @@ export default function App() {
         rootDirectoryHandle={directoryHandle}
         onRomsUpdated={(updatedRoms) => {
           setRoms(updatedRoms);
-          showToast('Begleitdateien erfolgreich bereinigt!', 'success');
+          showToast(t('toast.sideFilesCleaned'), 'success');
         }}
         onSnapshotCreated={(label, rollbackItems) => {
           const snapshot: UndoSnapshot = {

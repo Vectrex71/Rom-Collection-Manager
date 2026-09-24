@@ -54,6 +54,7 @@ import {
   resolveCoverFilenameFromGamelist,
   GamelistParseResult,
 } from '../utils/gamelistParser';
+import { useTranslation } from '../i18n';
 
 interface TemplateData {
   filename: string;
@@ -80,6 +81,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
   showToast,
   initialCoverFile,
 }) => {
+  const { t, language } = useTranslation();
   const [items, setItems] = useState<ConvertedCoverItem[]>([]);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [direction, setDirection] = useState<'left' | 'right'>('left');
@@ -202,7 +204,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
     );
 
     if (showToast) {
-      showToast(`Design-Vorlage "${preset.name}" angewendet!`, 'info');
+      showToast(t('toast.presetApplied', { name: preset.name }), 'info');
     }
   };
 
@@ -211,8 +213,8 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
     const newPreset: CoverPreset = {
       id: `custom_${Date.now()}`,
       name: newPresetName.trim(),
-      system: 'Benutzerdefiniert',
-      description: `Eigenes Profil: ${angle}° Winkel, ${Math.round(spineWidthRatio * 100)}% Rücken.`,
+      system: 'Custom',
+      description: `Custom: ${angle}° angle, ${Math.round(spineWidthRatio * 100)}% spine.`,
       icon: '⭐',
       style,
       direction,
@@ -230,7 +232,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
     setIsSavePresetModalOpen(false);
     setNewPresetName('');
     if (showToast) {
-      showToast(`Preset "${newPreset.name}" dauerhaft gespeichert!`, 'success');
+      showToast(t('toast.presetSaved', { name: newPreset.name }), 'success');
     }
   };
 
@@ -239,7 +241,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
     setCustomPresets(updated);
     setSelectedPresetId('box_standard');
     if (showToast) {
-      showToast('Eigenes Preset gelöscht.', 'info');
+      showToast(t('toast.presetDeleted'), 'info');
     }
   };
 
@@ -404,7 +406,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
         if (!selectedItemId) setSelectedItemId(newItems[0].id);
       }
       if (showToast) {
-        showToast(`${newItems.length} Covers erfolgreich eingelesen.`, 'info');
+        showToast(t('toast.coversRead', { count: newItems.length }), 'info');
       }
     }
   };
@@ -429,7 +431,13 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
         const parsed = parseGamelistXml(text, xmlFile.name);
         setGamelistData(parsed);
         if (showToast) {
-          showToast(`gamelist.xml verknüpft: ${parsed.totalGames} Spiele, ${parsed.totalWithImages} Cover-Pfade gefunden!`, 'success');
+          showToast(
+            t('toast.gamelistLinked', {
+              games: parsed.totalGames,
+              images: parsed.totalWithImages,
+            }),
+            'success'
+          );
         }
       } catch (err) {
         console.warn('gamelist.xml parse error', err);
@@ -467,7 +475,12 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
               const parsed = parseGamelistXml(text, xmlFile.name);
               setGamelistData(parsed);
               if (showToast) {
-                showToast(`gamelist.xml automatisch verknüpft: ${parsed.totalGames} Spiele, ${parsed.totalWithImages} Cover-Pfade!`, 'success');
+                showToast(
+                  language === 'de'
+                    ? `gamelist.xml automatisch verknüpft: ${parsed.totalGames} Spiele, ${parsed.totalWithImages} Cover-Pfade!`
+                    : `gamelist.xml linked: ${parsed.totalGames} games, ${parsed.totalWithImages} cover paths!`,
+                  'success'
+                );
               }
             } catch (xmlErr) {
               console.warn('gamelist.xml read error:', xmlErr);
@@ -490,7 +503,14 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
         }
 
         if (discovered.length === 0) {
-          if (showToast) showToast('Keine Bilddateien in diesem Ordner gefunden.', 'info');
+          if (showToast) {
+            showToast(
+              language === 'de'
+                ? 'Keine Bilddateien in diesem Ordner gefunden.'
+                : 'No image files found in this folder.',
+              'info'
+            );
+          }
           return;
         }
 
@@ -642,9 +662,14 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
       let baseHandle = sourceDirectoryHandle;
       if (!baseHandle) {
         if (typeof (window as any).showDirectoryPicker !== 'function') {
-          alert(
-            'Dein Browser unterstützt direkten Festplattenzugriff leider nicht. Bitte nutze Chrome, Edge oder Brave oder lade das ZIP-Archiv herunter.'
-          );
+          if (showToast) {
+            showToast(
+              language === 'de'
+                ? 'Direkter Festplattenzugriff im Browser eingeschränkt. Bitte lade das ZIP-Archiv herunter!'
+                : 'Direct disk write is restricted in browser. Please download the ZIP archive instead!',
+              'info'
+            );
+          }
           setIsSavingToFolder(false);
           return;
         }
@@ -750,14 +775,19 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
       setItems(updatedItems);
       setIsSaveModalOpen(false);
 
-      const summaryMessage = `${savedCount} 3D-Covers im Ordner '${targetDirHandle.name}' gespeichert!${
-        deleted2dCount > 0 ? ` (${deleted2dCount} 2D-Originale bereinigt)` : ''
-      }`;
+      const cleanNote = deleted2dCount > 0 ? ` (${deleted2dCount} 2D-Originals cleaned)` : '';
       if (showToast) {
-        showToast(summaryMessage, 'success');
+        showToast(
+          t('toast.coversSavedDirect', {
+            count: savedCount,
+            folder: targetDirHandle.name,
+            cleanNote,
+          }),
+          'success'
+        );
       }
 
-      // Proaktiv nach getaner Arbeit fragen, ob die Images für flüssige Handheld-Performance verkleinert werden sollen
+      // Proactively ask if images should be downscaled for handheld performance
       setTimeout(() => {
         setIsDownscaleModalOpen(true);
       }, 500);
@@ -775,7 +805,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
       }
       console.error('Error saving covers to folder:', err);
       if (showToast) {
-        showToast(`Fehler beim Speichern in Ordner: ${err.message || err}`, 'error');
+        showToast(t('toast.saveError', { error: err.message || String(err) }), 'error');
       }
     } finally {
       setIsSavingToFolder(false);
@@ -859,14 +889,17 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
 
       if (showToast) {
         showToast(
-          `${scaledCount} Cover auf max. ${selectedDimension}px (PNG) optimiert! Template.png blieb unberührt.`,
+          t('toast.downscaleSuccess', {
+            count: scaledCount,
+            dim: selectedDimension,
+          }),
           'success'
         );
       }
     } catch (err: any) {
       console.error('Downscaling error:', err);
       if (showToast) {
-        showToast(`Fehler bei der Bildverkleinerung: ${err.message || err}`, 'error');
+        showToast(t('toast.downscaleError', { error: err.message || String(err) }), 'error');
       }
     } finally {
       setIsDownscaling(false);
@@ -944,7 +977,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
             <button
               onClick={onBackToManager}
               className="p-2 rounded-xl bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 transition cursor-pointer shrink-0"
-              title="Zurück zum ROM Manager"
+              title={t('cover3d.backTooltip')}
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
@@ -955,10 +988,10 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
 
             <div className="min-w-0">
               <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                3D Cover Studio
+                {t('cover3d.title')}
               </h1>
               <p className="text-xs text-slate-300 line-clamp-1">
-                Wandle hunderte oder tausende flache 2D-Cover im Handumdrehen in plastische 3D-Boxen mit Spine & Glanzeffekten um.
+                {t('cover3d.subtitle')}
               </p>
             </div>
           </div>
@@ -966,9 +999,9 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
           {items.length > 0 && (
             <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 text-xs font-mono px-3 py-1.5 rounded-xl bg-slate-950/80 border border-white/10">
               <span className="text-slate-400">Status:</span>
-              <span className="text-fuchsia-300 font-bold">{items.length} Covers</span>
+              <span className="text-fuchsia-300 font-bold">{t('cover3d.statusCount', { count: items.length })}</span>
               <span className="text-slate-600">•</span>
-              <span className="text-emerald-400 font-bold">{alreadyConvertedCount} 3D-Bereit</span>
+              <span className="text-emerald-400 font-bold">{t('cover3d.statusReady3d', { count: alreadyConvertedCount })}</span>
             </div>
           )}
         </div>
@@ -1005,10 +1038,17 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                   const parsed = parseGamelistXml(text, file.name);
                   setGamelistData(parsed);
                   if (showToast) {
-                    showToast(`gamelist.xml verknüpft: ${parsed.totalGames} Spiele, ${parsed.totalWithImages} Cover-Pfade!`, 'success');
+                    showToast(
+                      language === 'de'
+                        ? `gamelist.xml verknüpft: ${parsed.totalGames} Spiele, ${parsed.totalWithImages} Cover-Pfade!`
+                        : `gamelist.xml linked: ${parsed.totalGames} games, ${parsed.totalWithImages} cover paths!`,
+                      'success'
+                    );
                   }
                 } catch (err) {
-                  if (showToast) showToast('Fehler beim Lesen der gamelist.xml', 'error');
+                  if (showToast) {
+                    showToast(language === 'de' ? 'Fehler beim Lesen der gamelist.xml' : 'Error reading gamelist.xml', 'error');
+                  }
                 }
               }
             }}
@@ -1019,10 +1059,10 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
             id="btn-workspace-add-folder"
             onClick={handleSelectCoverFolder}
             className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/15 transition cursor-pointer flex items-center gap-1.5 shrink-0"
-            title="Wähle einen Cover-Ordner (direkter Schreibzugriff für automatische Erstellung und Bereinigung)"
+            title={t('cover3d.btnCoverFolderTooltip')}
           >
             <FolderOpen className="w-3.5 h-3.5 text-fuchsia-400" />
-            <span>Cover-Ordner</span>
+            <span>{t('cover3d.btnCoverFolder')}</span>
           </button>
 
           <button
@@ -1033,13 +1073,13 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 ? 'bg-cyan-950/80 border-cyan-500/50 text-cyan-300 shadow-md shadow-cyan-950/40'
                 : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-white/15'
             }`}
-            title="Lade gamelist.xml (Cover-Dateinamen werden automatisch 1:1 an die XML angepasst, sodass alle Spiele gefunden werden)"
+            title={t('cover3d.btnGamelistTooltip')}
           >
             <FileCode className="w-3.5 h-3.5 text-cyan-400" />
             <span>
               {gamelistData
-                ? `✓ gamelist.xml (${gamelistData.totalWithImages} Covers verknüpft)`
-                : 'gamelist.xml laden'}
+                ? t('cover3d.btnGamelistLinked', { count: gamelistData.totalWithImages })
+                : t('cover3d.btnLoadGamelist')}
             </span>
           </button>
 
@@ -1047,10 +1087,10 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
             <button
               onClick={handleClearAll}
               className="px-3 py-2 rounded-xl text-xs font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-950/30 border border-rose-500/20 transition cursor-pointer flex items-center gap-1 shrink-0"
-              title="Alle geladenen Covers aus der Liste entfernen"
+              title={t('cover3d.btnClearTooltip')}
             >
               <Trash2 className="w-3.5 h-3.5" />
-              <span>Leeren</span>
+              <span>{t('cover3d.btnClear')}</span>
             </button>
           )}
 
@@ -1061,15 +1101,15 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
             disabled={filteredItems.length === 0 || isProcessingBatch}
             onClick={handleBatchConvertAll}
             className="px-4 py-2 rounded-xl text-xs font-bold bg-linear-to-r from-fuchsia-600 to-violet-600 hover:from-fuchsia-500 hover:to-violet-500 disabled:opacity-50 text-white shadow-md shadow-fuchsia-900/40 transition cursor-pointer flex items-center gap-2 shrink-0 whitespace-nowrap"
-            title="Berechnet die 3D-Vorschau für alle geladenen Covers"
+            title={t('cover3d.btnRenderTooltip')}
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
             <span>
               {isProcessingBatch
-                ? `Rendere ${batchProgress?.current}/${batchProgress?.total}...`
+                ? t('cover3d.btnRendering', { current: batchProgress?.current || 0, total: batchProgress?.total || 0 })
                 : filterOnlyNew && alreadyConvertedCount > 0
-                ? `Nur ${filteredItems.length} neue rendern`
-                : `Alle ${filteredItems.length} rendern`}
+                ? t('cover3d.btnRenderOnlyNew', { count: filteredItems.length })
+                : t('cover3d.btnRenderBatch', { count: filteredItems.length })}
             </span>
           </button>
 
@@ -1078,13 +1118,13 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
             disabled={filteredItems.length === 0 || isSavingToFolder}
             onClick={() => setIsSaveModalOpen(true)}
             className="px-4 py-2 rounded-xl text-xs font-bold bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white shadow-md shadow-emerald-950/40 transition cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap"
-            title="Erstellt den Ordner 'Covers' und speichert alle 3D-Boxen direkt auf die Festplatte"
+            title={t('cover3d.btnSaveTooltip')}
           >
             <FolderPlus className="w-3.5 h-3.5 text-emerald-200" />
             <span>
               {isSavingToFolder
-                ? 'Speichere in Covers...'
-                : `In 'Covers' speichern (${filteredItems.length})`}
+                ? t('cover3d.btnSaving')
+                : t('cover3d.btnSaveToCovers', { count: filteredItems.length })}
             </span>
           </button>
 
@@ -1095,10 +1135,10 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
             disabled={items.length === 0 || isDownscaling}
             onClick={() => setIsDownscaleModalOpen(true)}
             className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-sky-200 border border-sky-500/30 transition cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap shadow-sm hover:border-sky-400/50"
-            title="Verkleinert Cover-Bilder für flüssige Handheld-Performance (PNG, behält Proportionen, lässt Template.png unberührt)"
+            title={t('cover3d.btnHandheldTooltip')}
           >
             <Gauge className="w-3.5 h-3.5 text-sky-400" />
-            <span>{isDownscaling ? 'Optimiere...' : 'Handheld-Größe (PNG)'}</span>
+            <span>{isDownscaling ? t('cover3d.btnOptimizing') : t('cover3d.btnHandheldSize')}</span>
           </button>
 
           <button
@@ -1106,10 +1146,10 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
             disabled={filteredItems.length === 0 || isZipping}
             onClick={handleDownloadAllZip}
             className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 border border-white/15 transition cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap"
-            title="Alternativ: Als ZIP-Archiv mit 'Covers/'-Ordnerstruktur herunterladen"
+            title={t('cover3d.btnZipTooltip')}
           >
             <Download className="w-3.5 h-3.5 text-slate-400" />
-            <span>{isZipping ? 'Packe ZIP...' : `ZIP Archiv`}</span>
+            <span>{isZipping ? t('cover3d.btnZipping') : t('cover3d.btnZip')}</span>
           </button>
         </div>
       </div>
@@ -1125,11 +1165,11 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
                   <span className="text-xs font-bold text-white tracking-wide">
-                    Intelligenter Cover-Schutz aktiv
+                    {t('cover3d.smartProtectionTitle')}
                   </span>
                   {templateData?.isExisting && templateData.lastModified && (
                     <span className="text-[10px] text-fuchsia-300 font-mono px-2 py-0.5 rounded-full bg-fuchsia-950/60 border border-fuchsia-500/20">
-                      Basis: Template.png ({new Date(templateData.lastModified).toLocaleDateString('de-DE')})
+                      {t('cover3d.templateBasis', { date: new Date(templateData.lastModified).toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US') })}
                     </span>
                   )}
                 </div>
@@ -1143,7 +1183,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                         : 'text-slate-400 hover:text-white'
                     }`}
                   >
-                    ★ Nur neue Covers ({newItemsCount})
+                    {t('cover3d.filterOnlyNew', { count: newItemsCount })}
                   </button>
                   <button
                     onClick={() => setFilterOnlyNew(false)}
@@ -1153,7 +1193,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                         : 'text-slate-400 hover:text-white'
                     }`}
                   >
-                    Alle anzeigen ({items.length})
+                    {t('cover3d.filterShowAll', { count: items.length })}
                   </button>
                 </div>
               </div>
@@ -1163,17 +1203,11 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 <div>
                   {filterOnlyNew ? (
                     <span>
-                      <strong className="text-emerald-400">{newItemsCount} neue Covers</strong> wurden anhand des Änderungsdatums (neuer als Template.png) identifiziert.{' '}
-                      <span className="text-slate-300">
-                        {alreadyConvertedCount} bestehende Covers sind älter/gleich alt und werden geschützt (keine Doppelberechnung).
-                      </span>{' '}
-                      <span className="text-emerald-300 font-medium">
-                        Dateinamen bleiben 1:1 identisch zum ROM (z. B. SuperMario.png) für sofortige Frontend-Erkennung.
-                      </span>
+                      {t('cover3d.protectionNewDesc', { count: newItemsCount, converted: alreadyConvertedCount })}
                     </span>
                   ) : (
                     <span>
-                      Es werden alle <strong className="text-white">{items.length} Covers</strong> angezeigt. Bereits konvertierte Covers sind mit einem Badge markiert und behalten ihren exakten ROM-Dateinamen.
+                      {t('cover3d.protectionAllDesc', { count: items.length })}
                     </span>
                   )}
                 </div>
@@ -1189,7 +1223,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <input
                   type="text"
-                  placeholder="Covers filtern..."
+                  placeholder={t('cover3d.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-950/60 border border-white/15 rounded-xl text-white placeholder-slate-400 focus:outline-hidden focus:border-fuchsia-400"
@@ -1207,7 +1241,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                         : 'text-slate-400 hover:text-white'
                     }`}
                   >
-                    Alle ({items.length})
+                    {t('cover3d.tabAll', { count: items.length })}
                   </button>
                   <button
                     onClick={() => setStatusFilter('pending')}
@@ -1217,7 +1251,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                         : 'text-slate-400 hover:text-white'
                     }`}
                   >
-                    Bereit ({pendingCount})
+                    {t('cover3d.tabReady', { count: pendingCount })}
                   </button>
                   <button
                     onClick={() => setStatusFilter('done')}
@@ -1227,7 +1261,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                         : 'text-slate-400 hover:text-white'
                     }`}
                   >
-                    Fertig ({doneCount})
+                    {t('cover3d.tabDone', { count: doneCount })}
                   </button>
                 </div>
 
@@ -1239,7 +1273,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                         ? 'bg-slate-800 text-white'
                         : 'text-slate-400 hover:text-white'
                     }`}
-                    title="Kachel-Raster"
+                    title={t('cover3d.viewGridTooltip')}
                   >
                     <LayoutGrid className="w-3.5 h-3.5" />
                   </button>
@@ -1250,7 +1284,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                         ? 'bg-slate-800 text-white'
                         : 'text-slate-400 hover:text-white'
                     }`}
-                    title="Listen-Ansicht"
+                    title={t('cover3d.viewListTooltip')}
                   >
                     <ListIcon className="w-3.5 h-3.5" />
                   </button>
@@ -1270,7 +1304,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
             >
               <FolderOpen className="w-4 h-4 text-fuchsia-400/80" />
               <p className="text-xs text-slate-300 font-medium">
-                Cover-Ordner oder Bild-Dateien (.png, .jpg, .webp) per Drag & Drop hier ablegen
+                {t('cover3d.dropzoneHint')}
               </p>
             </div>
           </div>
@@ -1281,7 +1315,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
             {filteredItems.length > 0 && (
               <div className="flex items-center justify-between gap-3 pb-2 border-b border-white/10 text-xs text-slate-300">
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-400">Pro Seite:</span>
+                  <span className="text-slate-400">{t('cover3d.perPage')}</span>
                   <select
                     value={catalogPageSize}
                     onChange={(e) => setCatalogPageSize(Number(e.target.value))}
@@ -1290,7 +1324,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                     <option value={24}>24 Covers</option>
                     <option value={48}>48 Covers</option>
                     <option value={96}>96 Covers</option>
-                    <option value={0}>Alle ({filteredItems.length})</option>
+                    <option value={0}>{t('cover3d.allCoversOption', { count: filteredItems.length })}</option>
                   </select>
                 </div>
 
@@ -1324,9 +1358,9 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                   <Box className="w-8 h-8 opacity-80" />
                 </div>
                 <div className="space-y-1.5 max-w-md">
-                  <h3 className="text-base font-bold text-white">Noch keine 2D-Covers geladen</h3>
+                  <h3 className="text-base font-bold text-white">{t('cover3d.emptyTitle')}</h3>
                   <p className="text-xs text-slate-300 leading-relaxed">
-                    Wähle einen Cover-Ordner aus oder ziehe ihn direkt hier hinein. Das Studio verarbeitet auch große Sammlungen mit hunderten von Covern performant im Browser.
+                    {t('cover3d.emptySubtitle')}
                   </p>
                 </div>
                 <div className="flex items-center gap-3 pt-2">
@@ -1335,13 +1369,13 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                     className="px-5 py-2.5 rounded-xl text-xs font-bold bg-fuchsia-600 hover:bg-fuchsia-500 text-white shadow-md transition cursor-pointer flex items-center gap-2"
                   >
                     <FolderOpen className="w-4 h-4" />
-                    <span>Cover-Ordner öffnen</span>
+                    <span>{t('cover3d.openFolderBtn')}</span>
                   </button>
                 </div>
               </div>
             ) : filteredItems.length === 0 ? (
               <div className="py-16 text-center text-slate-400 text-xs">
-                Keine Covers entsprechen dem aktuellen Filter „{searchQuery}“.
+                {t('cover3d.noMatchesFor', { query: searchQuery })}
               </div>
             ) : displayMode === 'grid' ? (
               /* Grid Mode: Spacious multi-column card layout */
@@ -1372,12 +1406,12 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                         {/* Badges: New / Already 3D */}
                         {item.isNew && (
                           <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-emerald-600 text-white text-[9px] font-bold shadow-md tracking-wider">
-                            ★ Neu
+                            {t('cover3d.badgeNew')}
                           </div>
                         )}
                         {item.alreadyConverted && (
                           <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-slate-800/90 text-slate-300 text-[9px] font-semibold border border-white/15 shadow-md">
-                            Bereits 3D
+                            {t('cover3d.badgeAlready3d')}
                           </div>
                         )}
 
@@ -1395,7 +1429,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                           {item.filename}
                         </p>
                         {xmlResolved && (
-                          <p className="text-[9px] font-mono text-cyan-300 truncate" title={`XML-Ziel: ${xmlResolved}`}>
+                          <p className="text-[9px] font-mono text-cyan-300 truncate" title={`XML: ${xmlResolved}`}>
                             XML: {xmlResolved}
                           </p>
                         )}
@@ -1403,7 +1437,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                           <span>{item.originalImage.width}×{item.originalImage.height} px</span>
                           {item.lastModified && (
                             <span className="text-[9px] text-slate-400 font-sans">
-                              {new Date(item.lastModified).toLocaleDateString('de-DE')}
+                              {new Date(item.lastModified).toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US')}
                             </span>
                           )}
                         </div>
@@ -1446,12 +1480,12 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                             )}
                             {item.isNew && (
                               <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-500/30 shrink-0">
-                                ★ Neu
+                                {t('cover3d.badgeNew')}
                               </span>
                             )}
                             {item.alreadyConverted && (
                               <span className="px-1.5 py-0.2 rounded text-[9px] font-medium bg-slate-800 text-slate-400 border border-white/10 shrink-0">
-                                Bereits 3D
+                                {t('cover3d.badgeAlready3d')}
                               </span>
                             )}
                           </div>
@@ -1460,12 +1494,12 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                             {item.lastModified && (
                               <>
                                 <span>•</span>
-                                <span>{new Date(item.lastModified).toLocaleDateString('de-DE')}</span>
+                                <span>{new Date(item.lastModified).toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US')}</span>
                               </>
                             )}
                             <span>•</span>
                             <span className={item.status === 'done' ? 'text-emerald-400' : 'text-amber-400'}>
-                              {item.status === 'done' ? 'Gerendert' : 'Bereit'}
+                              {item.status === 'done' ? t('cover3d.statusDone') : t('cover3d.statusPending')}
                             </span>
                           </div>
                         </div>
@@ -1474,10 +1508,10 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                       {item.status === 'done' ? (
                         <div className="flex items-center gap-1 text-emerald-400 text-xs font-bold shrink-0">
                           <CheckCircle2 className="w-4 h-4" />
-                          <span className="hidden sm:inline">3D bereit</span>
+                          <span className="hidden sm:inline">{t('cover3d.status3dReady')}</span>
                         </div>
                       ) : (
-                        <span className="text-[11px] text-slate-400 shrink-0">Bereit</span>
+                        <span className="text-[11px] text-slate-400 shrink-0">{t('cover3d.statusPending')}</span>
                       )}
                     </div>
                   );
@@ -1489,7 +1523,11 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
             {catalogPageSize > 0 && totalCatalogPages > 1 && (
               <div className="flex items-center justify-between gap-3 pt-2 border-t border-white/10 text-xs text-slate-400">
                 <span>
-                  Zeige {(safeCatalogPage - 1) * catalogPageSize + 1}–{Math.min(safeCatalogPage * catalogPageSize, filteredItems.length)} von {filteredItems.length} Covers
+                  {t('cover3d.showingRange', {
+                    start: (safeCatalogPage - 1) * catalogPageSize + 1,
+                    end: Math.min(safeCatalogPage * catalogPageSize, filteredItems.length),
+                    total: filteredItems.length
+                  })}
                 </span>
                 <div className="flex items-center gap-1.5">
                   <button
@@ -1497,7 +1535,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                     onClick={() => setCatalogPage((p) => Math.max(1, p - 1))}
                     className="px-2.5 py-1 rounded bg-slate-800 disabled:opacity-30 hover:bg-slate-700 text-white cursor-pointer"
                   >
-                    ◀ Zurück
+                    ◀ {t('cover3d.prevPage')}
                   </button>
                   <span className="font-mono text-xs text-slate-200">
                     {safeCatalogPage} / {totalCatalogPages}
@@ -1507,7 +1545,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                     onClick={() => setCatalogPage((p) => Math.min(totalCatalogPages, p + 1))}
                     className="px-2.5 py-1 rounded bg-slate-800 disabled:opacity-30 hover:bg-slate-700 text-white cursor-pointer"
                   >
-                    Weiter ▶
+                    {t('cover3d.nextPage')} ▶
                   </button>
                 </div>
               </div>
@@ -1522,7 +1560,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
             <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
               <div className="flex items-center gap-2">
                 <Box className="w-4 h-4 text-fuchsia-400" />
-                <span className="text-xs font-bold text-white">Echtzeit 3D-Vorschau</span>
+                <span className="text-xs font-bold text-white">{t('cover3d.livePreviewTitle')}</span>
               </div>
 
               {/* Prev / Next navigation for cycling through covers */}
@@ -1534,7 +1572,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                       if (activeIndex > 0) setSelectedItemId(items[activeIndex - 1].id);
                     }}
                     className="p-1 rounded-lg bg-slate-900/60 hover:bg-slate-800 disabled:opacity-40 text-slate-300 hover:text-white transition cursor-pointer"
-                    title="Vorheriges Cover"
+                    title={t('cover3d.prevCoverTooltip')}
                   >
                     <ChevronLeft className="w-3.5 h-3.5" />
                   </button>
@@ -1547,7 +1585,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                       if (activeIndex < items.length - 1) setSelectedItemId(items[activeIndex + 1].id);
                     }}
                     className="p-1 rounded-lg bg-slate-900/60 hover:bg-slate-800 disabled:opacity-40 text-slate-300 hover:text-white transition cursor-pointer"
-                    title="Nächstes Cover"
+                    title={t('cover3d.nextCoverTooltip')}
                   >
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
@@ -1577,10 +1615,10 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                     <button
                       onClick={handleDownloadSingle}
                       className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-fuchsia-600/90 hover:bg-fuchsia-500 text-white shadow-md backdrop-blur-md transition cursor-pointer flex items-center gap-1.5"
-                      title="Aktuelles 3D Cover als PNG speichern"
+                      title={t('cover3d.savePngTooltip')}
                     >
                       <Download className="w-3.5 h-3.5" />
-                      <span>PNG speichern</span>
+                      <span>{t('cover3d.savePng')}</span>
                     </button>
                   </div>
 
@@ -1594,9 +1632,9 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                     <Box className="w-7 h-7 opacity-90" />
                   </div>
                   <div className="space-y-1 max-w-xs">
-                    <p className="text-sm font-bold text-slate-200">Kein Cover ausgewählt</p>
+                    <p className="text-sm font-bold text-slate-200">{t('cover3d.noCoverSelected')}</p>
                     <p className="text-xs text-slate-400 leading-relaxed">
-                      Lade einen Cover-Ordner (.png, .jpg) hoch oder wähle ein Cover aus der Liste links.
+                      {t('cover3d.noCoverSelectedDesc')}
                     </p>
                   </div>
                 </div>
@@ -1611,22 +1649,22 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <span className="text-base">🎨</span>
-                  <span className="text-xs font-bold text-white">Vorgefertigte Design-Vorlagen</span>
+                  <span className="text-xs font-bold text-white">{t('cover3d.presetsTitle')}</span>
                 </div>
                 <button
                   type="button"
                   id="btn-save-current-preset"
                   onClick={() => setIsSavePresetModalOpen(true)}
                   className="text-[11px] text-violet-300 hover:text-white flex items-center gap-1 font-semibold cursor-pointer bg-violet-950/60 hover:bg-violet-900/60 px-2.5 py-1 rounded-lg border border-violet-500/30 transition shadow-xs"
-                  title="Speichere deine aktuellen Einstellungen als Vorlage für spätere Covers"
+                  title={t('cover3d.saveAsPresetTooltip')}
                 >
                   <span>💾</span>
-                  <span>Als Preset speichern</span>
+                  <span>{t('cover3d.saveAsPreset')}</span>
                 </button>
               </div>
 
               <p className="text-[11px] text-slate-400 leading-normal">
-                Wähle ein vorgefertigtes Design für deine Cover-Sammlung:
+                {t('cover3d.presetsSubtitle')}
               </p>
 
               {/* Quick Visual Design Cards Grid (6 Core Visual Styles) */}
@@ -1664,7 +1702,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
               {/* Dropdown for All Profiles & Custom Presets */}
               <div className="pt-1">
                 <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">
-                  Weitere Konsolen-Profile & Eigene Presets:
+                  {t('cover3d.moreProfilesLabel')}
                 </label>
                 <select
                   id="select-cover-preset"
@@ -1678,14 +1716,14 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                   }}
                   className="w-full bg-slate-900 border border-white/15 rounded-lg px-2.5 py-1.5 text-xs text-white cursor-pointer focus:border-violet-400"
                 >
-                  <optgroup label="🎨 Vorgefertigte Designs (Mockup-Stile)">
+                  <optgroup label={t('cover3d.optgroupPredefined')}>
                     {SYSTEM_COVER_PRESETS.slice(0, 6).map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.icon} {p.name} ({p.system})
                       </option>
                     ))}
                   </optgroup>
-                  <optgroup label="🎮 Spezifische Konsolen-Boxen">
+                  <optgroup label={t('cover3d.optgroupSpecific')}>
                     {SYSTEM_COVER_PRESETS.slice(6).map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.icon} {p.name} ({p.angle}°, {Math.round(p.spineWidthRatio * 100)}% Rücken)
@@ -1693,7 +1731,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                     ))}
                   </optgroup>
                   {customPresets.length > 0 && (
-                    <optgroup label="⭐ Eigene Presets">
+                    <optgroup label={t('cover3d.optgroupCustom')}>
                       {customPresets.map((p) => (
                         <option key={p.id} value={p.id}>
                           ⭐ {p.name}
@@ -1715,7 +1753,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                       onClick={() => handleDeleteCustomPreset(activePreset.id)}
                       className="text-rose-400 hover:text-rose-300 shrink-0 underline text-[10px] cursor-pointer"
                     >
-                      Löschen
+                      {t('cover3d.deletePreset')}
                     </button>
                   )}
                 </div>
@@ -1728,7 +1766,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-xs font-bold text-white">System-Vorgabe (Template.png)</span>
+                    <span className="text-xs font-bold text-white">{t('cover3d.templateTitle')}</span>
                   </div>
                   <span className="text-[11px] font-mono font-bold text-fuchsia-300 bg-fuchsia-950/60 px-2 py-0.5 rounded border border-fuchsia-500/30">
                     {templateData.width} × {templateData.height} px
@@ -1737,8 +1775,8 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 <div className="flex items-center justify-between text-[11px] text-slate-300">
                   <span className="text-emerald-400 font-medium">
                     {templateData.isExisting
-                      ? '✓ Aus Ordner geladen'
-                      : '✓ Automatisch aus 1. Cover erzeugt'}
+                      ? t('cover3d.templateLoadedFromFolder')
+                      : t('cover3d.templateCreatedFromFirst')}
                   </span>
                   <button
                     onClick={() => {
@@ -1753,32 +1791,34 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                       URL.revokeObjectURL(url);
                     }}
                     className="text-fuchsia-400 hover:text-fuchsia-300 underline font-medium cursor-pointer"
-                    title="Template.png als unverändertes Vorbild herunterladen"
+                    title={t('cover3d.saveTemplateTooltip')}
                   >
-                    Template.png speichern
+                    {t('cover3d.saveTemplate')}
                   </button>
                 </div>
                 {templateData.lastModified && (
                   <p className="text-[10px] text-fuchsia-300/80 font-mono">
-                    Zeitstempel: {new Date(templateData.lastModified).toLocaleString('de-DE')} • Referenz für neue Covers
+                    {t('cover3d.templateTimestamp', {
+                      time: new Date(templateData.lastModified).toLocaleString(language === 'de' ? 'de-DE' : 'en-US')
+                    })}
                   </p>
                 )}
                 <p className="text-[10px] text-slate-400 leading-normal">
-                  Alle Covers in diesem Ordner werden einheitlich an diese Maße angepasst. Neu hinzugefügte ROM-Covers werden automatisch am Zeitstempel erkannt.
+                  {t('cover3d.templateDesc')}
                 </p>
               </div>
             ) : (
               <div className="p-2.5 rounded-xl bg-slate-950/40 border border-white/5 text-[11px] text-slate-400">
-                Wähle einen Cover-Ordner. Das 1. Bild dient automatisch als <span className="text-slate-200 font-semibold">Template.png</span> für einheitliche Maße aller Boxen.
+                {t('cover3d.noTemplateNotice')}
               </div>
             )}
 
             {/* Direction Selector (Drehrichtung: Nach links zur Liste vs. Nach rechts) */}
             <div className="space-y-1.5 pt-1">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-300 font-medium">Blickrichtung (Horizontal)</span>
+                <span className="text-slate-300 font-medium">{t('cover3d.directionHeading')}</span>
                 <span className="text-[10px] text-fuchsia-300 font-medium">
-                  {direction === 'left' ? '← Nach links (zur Liste)' : 'Nach rechts →'}
+                  {direction === 'left' ? t('cover3d.directionLeft') : t('cover3d.directionRight')}
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-1.5 p-0.5 bg-slate-950 rounded-lg border border-white/10 text-xs">
@@ -1789,10 +1829,10 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                       ? 'bg-fuchsia-600 text-white font-bold shadow'
                       : 'text-slate-400 hover:text-white'
                   }`}
-                  title="Cover schaut nach links (in Richtung der Cover-Liste)"
+                  title={t('cover3d.directionLeftTooltip')}
                 >
                   <span>←</span>
-                  <span>Nach links (zur Liste)</span>
+                  <span>{t('cover3d.directionLeft')}</span>
                 </button>
                 <button
                   onClick={() => setDirection('right')}
@@ -1801,9 +1841,9 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                       ? 'bg-fuchsia-600 text-white font-bold shadow'
                       : 'text-slate-400 hover:text-white'
                   }`}
-                  title="Cover schaut nach rechts"
+                  title={t('cover3d.directionRightTooltip')}
                 >
-                  <span>Nach rechts</span>
+                  <span>{t('cover3d.directionRight')}</span>
                   <span>→</span>
                 </button>
               </div>
@@ -1814,7 +1854,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
               {/* Angle Slider */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-300 font-medium">Blickwinkel (Perspektive)</span>
+                  <span className="text-slate-300 font-medium">{t('cover3d.angleLabel')}</span>
                   <span className="font-mono text-fuchsia-400 font-bold">{angle}°</span>
                 </div>
                 <input
@@ -1830,7 +1870,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
               {/* Spine Width Slider */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-300 font-medium">Buchrücken (Spine-Tiefe)</span>
+                  <span className="text-slate-300 font-medium">{t('cover3d.spineWidthLabel')}</span>
                   <span className="font-mono text-fuchsia-400 font-bold">
                     {Math.round(spineWidthRatio * 100)}%
                   </span>
@@ -1849,7 +1889,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
               {/* Gloss / Sheen Slider */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-300 font-medium">Lichtglanz (Sheen)</span>
+                  <span className="text-slate-300 font-medium">{t('cover3d.sheenLabel')}</span>
                   <span className="font-mono text-fuchsia-400 font-bold">
                     {Math.round(glossOpacity * 100)}%
                   </span>
@@ -1868,7 +1908,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
               {/* Drop Shadow Slider */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-300 font-medium">Schlagschatten (Tiefe)</span>
+                  <span className="text-slate-300 font-medium">{t('cover3d.shadowLabel')}</span>
                   <span className="font-mono text-fuchsia-400 font-bold">
                     {Math.round(shadowOpacity * 100)}%
                   </span>
@@ -1887,13 +1927,13 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
               {/* Spine Mode Selector (Stretch vs Color vs Title) */}
               <div className="space-y-2 pt-2 border-t border-white/10">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-300 font-medium">Buchrücken-Methode</span>
+                  <span className="text-slate-300 font-medium">{t('cover3d.spineModeHeading')}</span>
                   <span className="text-[10px] text-fuchsia-300 font-medium">
                     {spineMode === 'stretch'
-                      ? '1px Rand-Streckung'
+                      ? t('cover3d.spineModeStretchShort')
                       : spineMode === 'color'
-                      ? 'Vollfarbe'
-                      : 'Mit Spieltitel'}
+                      ? t('cover3d.spineModeColor')
+                      : t('cover3d.spineModeWithTitle')}
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-1 p-0.5 bg-slate-950 rounded-lg border border-white/10 text-[11px]">
@@ -1904,9 +1944,9 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                         ? 'bg-fuchsia-600 text-white font-bold shadow-xs'
                         : 'text-slate-400 hover:text-white'
                     }`}
-                    title="1px Rand-Streckung (Authentische Kanten-Extrusion)"
+                    title={t('cover3d.spineStretchTooltip')}
                   >
-                    1px Rand
+                    {t('cover3d.spineModeStretchShort')}
                   </button>
                   <button
                     onClick={() => setSpineMode('color')}
@@ -1915,9 +1955,9 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                         ? 'bg-fuchsia-600 text-white font-bold shadow-xs'
                         : 'text-slate-400 hover:text-white'
                     }`}
-                    title="Volltonfarbe aus Randfarbe ermitteln"
+                    title={t('cover3d.spineColorTooltip')}
                   >
-                    Vollfarbe
+                    {t('cover3d.spineModeColor')}
                   </button>
                   <button
                     onClick={() => setSpineMode('title')}
@@ -1926,9 +1966,9 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                         ? 'bg-fuchsia-600 text-white font-bold shadow-xs'
                         : 'text-slate-400 hover:text-white'
                     }`}
-                    title="Retro-Buchrücken mit vertikalem Spieltitel"
+                    title={t('cover3d.spineTitleTooltip')}
                   >
-                    Mit Titel
+                    {t('cover3d.spineModeWithTitle')}
                   </button>
                 </div>
 
@@ -1936,15 +1976,15 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 {spineMode === 'title' && (
                   <div className="p-2.5 rounded-xl bg-slate-950/80 border border-fuchsia-500/20 space-y-2 text-xs">
                     <div className="flex items-center justify-between text-[11px] text-slate-300">
-                      <span>Rücken-Farbe:</span>
+                      <span>{t('cover3d.spineColorLabel')}</span>
                       <span className="text-[10px] text-fuchsia-400 font-mono">
                         {spineColorType === 'auto'
-                          ? 'Auto (Cover-Rand)'
+                          ? t('cover3d.spineColorAuto')
                           : spineColorType === 'black'
-                          ? 'Klassisch Schwarz'
+                          ? t('cover3d.spineColorBlack')
                           : spineColorType === 'dark'
-                          ? 'Abgedunkelt'
-                          : 'Klassisch Weiß'}
+                          ? t('cover3d.spineColorDark')
+                          : t('cover3d.spineColorWhite')}
                       </span>
                     </div>
                     <div className="grid grid-cols-4 gap-1">
@@ -1955,9 +1995,9 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                             ? 'bg-fuchsia-950 text-fuchsia-200 border-fuchsia-500/60 font-bold'
                             : 'bg-slate-900/80 text-slate-400 border-white/5 hover:text-white'
                         }`}
-                        title="Automatisch aus der Kantenfarbe des Covers generieren"
+                        title={t('cover3d.spineColorAutoTooltip')}
                       >
-                        Auto
+                        {t('cover3d.spineColorAutoShort')}
                       </button>
                       <button
                         onClick={() => setSpineColorType('black')}
@@ -1966,9 +2006,9 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                             ? 'bg-fuchsia-950 text-fuchsia-200 border-fuchsia-500/60 font-bold'
                             : 'bg-slate-900/80 text-slate-400 border-white/5 hover:text-white'
                         }`}
-                        title="Klassisches tiefes Schwarz mit weißer Schrift"
+                        title={t('cover3d.spineColorBlackTooltip')}
                       >
-                        Schwarz
+                        {t('cover3d.spineColorBlackShort')}
                       </button>
                       <button
                         onClick={() => setSpineColorType('dark')}
@@ -1977,9 +2017,9 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                             ? 'bg-fuchsia-950 text-fuchsia-200 border-fuchsia-500/60 font-bold'
                             : 'bg-slate-900/80 text-slate-400 border-white/5 hover:text-white'
                         }`}
-                        title="Abgedunkelte Version der Randfarbe"
+                        title={t('cover3d.spineColorDarkTooltip')}
                       >
-                        Dunkel
+                        {t('cover3d.spineColorDarkShort')}
                       </button>
                       <button
                         onClick={() => setSpineColorType('white')}
@@ -1988,15 +2028,15 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                             ? 'bg-fuchsia-950 text-fuchsia-200 border-fuchsia-500/60 font-bold'
                             : 'bg-slate-900/80 text-slate-400 border-white/5 hover:text-white'
                         }`}
-                        title="Klassisches helles Weiß mit dunkler Schrift"
+                        title={t('cover3d.spineColorWhiteTooltip')}
                       >
-                        Weiß
+                        {t('cover3d.spineColorWhiteShort')}
                       </button>
                     </div>
 
                     {activeItem && (
                       <div className="pt-1 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-400">
-                        <span>Aktiver Titel:</span>
+                        <span>{t('cover3d.activeTitleLabel')}</span>
                         <span
                           className="text-slate-200 font-semibold truncate max-w-[170px]"
                           title={cleanGameTitle(activeItem.filename)}
@@ -2028,10 +2068,10 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-white tracking-tight">
-                    In Ordner 'Covers' speichern
+                    {t('cover3d.saveModalTitle')}
                   </h3>
                   <p className="text-xs text-slate-300">
-                    Schreibt die 3D-Boxen direkt auf die Festplatte (1:1 ROM-Dateinamen).
+                    {t('cover3d.saveModalSubtitle')}
                   </p>
                 </div>
               </div>
@@ -2050,11 +2090,10 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 <Info className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
                 <div className="space-y-1.5 flex-1">
                   <span className="font-semibold text-sky-100 block">
-                    Hinweis zum Vorschau-Simulator (iFrame)
+                    {t('cover3d.iframeNoticeTitle')}
                   </span>
                   <p className="text-[11px] text-slate-300 leading-relaxed">
-                    Browser blockieren in eingebetteten Vorschaufenstern den direkten Schreibzugriff auf Festplattenordner.
-                    Für direktes Speichern öffne die App in einem <strong>eigenen Tab</strong> oder nutze den bequemen <strong>ZIP-Download</strong>!
+                    {t('cover3d.iframeNoticeDesc')}
                   </p>
                   <div className="flex flex-wrap items-center gap-2 pt-1">
                     <button
@@ -2063,7 +2102,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                       className="px-2.5 py-1 rounded-lg bg-sky-600/30 hover:bg-sky-600/50 border border-sky-500/40 text-white font-medium text-[11px] flex items-center gap-1.5 transition cursor-pointer"
                     >
                       <ExternalLink className="w-3 h-3" />
-                      <span>In neuem Tab öffnen</span>
+                      <span>{t('cover3d.btnOpenNewTab')}</span>
                     </button>
                     <button
                       type="button"
@@ -2074,7 +2113,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                       className="px-2.5 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-500/40 text-emerald-200 font-medium text-[11px] flex items-center gap-1.5 transition cursor-pointer"
                     >
                       <Download className="w-3 h-3" />
-                      <span>Als ZIP laden</span>
+                      <span>{t('cover3d.btnLoadZip')}</span>
                     </button>
                   </div>
                 </div>
@@ -2084,14 +2123,14 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
             {/* Folder Target Path */}
             <div className="p-3.5 rounded-xl bg-slate-950 border border-white/10 space-y-3">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-400 font-medium">Zielverzeichnis:</span>
+                <span className="text-slate-400 font-medium">{t('cover3d.targetDirLabel')}</span>
                 <button
                   type="button"
                   disabled={isSavingToFolder}
                   onClick={handleChooseCustomTargetFolder}
                   className="text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer underline text-[11px]"
                 >
-                  {sourceFolderName ? 'Ordner ändern...' : 'Ordner wählen...'}
+                  {sourceFolderName ? t('cover3d.btnChangeFolder') : t('cover3d.btnChooseFolder')}
                 </button>
               </div>
 
@@ -2102,7 +2141,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                     ? createSubfolderCovers && !/^covers$/i.test(sourceFolderName)
                       ? `${sourceFolderName}/Covers/`
                       : `${sourceFolderName}/`
-                    : "Wird beim Klick auf 'Speichern' abgefragt"}
+                    : t('cover3d.folderAskOnSave')}
                 </span>
               </div>
 
@@ -2115,7 +2154,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                   className="rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
                 />
                 <span>
-                  Unterordner <strong className="text-white">Covers</strong> erstellen / nutzen (Standard für Retro-Frontends)
+                  {t('cover3d.checkSubfolderCovers')}
                 </span>
               </label>
             </div>
@@ -2132,10 +2171,10 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 />
                 <div className="space-y-1 text-xs">
                   <span className="font-bold text-amber-200 block">
-                    Alte 2D-Originale nach erfolgreicher Umwandlung löschen
+                    {t('cover3d.checkDelete2d')}
                   </span>
                   <p className="text-[11px] text-slate-300 leading-relaxed">
-                    Entfernt die alten flachen 2D-Dateien. Frontends greifen sofort auf das neue 3D-Cover zu, und das versehentliche Berechnen einer 3D-Box auf eine bestehende 3D-Box ist damit dauerhaft ausgeschlossen.
+                    {t('cover3d.checkDelete2dDesc')}
                   </p>
                 </div>
               </label>
@@ -2152,7 +2191,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                   className="rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
                 />
                 <span>
-                  System-Referenz <code className="text-fuchsia-300">Template.png</code> im Covers-Ordner mitspeichern
+                  {t('cover3d.checkIncludeTemplate')}
                 </span>
               </label>
             </div>
@@ -2161,7 +2200,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
             {isSavingToFolder && saveProgress && (
               <div className="space-y-2 p-3 rounded-xl bg-slate-950 border border-emerald-500/30">
                 <div className="flex justify-between text-xs font-semibold text-emerald-400">
-                  <span>Speichere Covers direkt auf Festplatte...</span>
+                  <span>{t('cover3d.progressSavingToDisk')}</span>
                   <span>{saveProgress.current} / {saveProgress.total}</span>
                 </div>
                 <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
@@ -2186,7 +2225,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 onClick={() => setIsSaveModalOpen(false)}
                 className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer disabled:opacity-40"
               >
-                Abbrechen
+                {t('cover3d.btnCancel')}
               </button>
               <button
                 type="button"
@@ -2198,8 +2237,8 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 <FolderPlus className="w-4 h-4" />
                 <span>
                   {isSavingToFolder
-                    ? 'Schreibe auf Festplatte...'
-                    : `Jetzt in 'Covers' speichern (${filteredItems.length})`}
+                    ? t('cover3d.btnWritingToDisk')
+                    : t('cover3d.btnSaveToCoversConfirm', { count: filteredItems.length })}
                 </span>
               </button>
             </div>
@@ -2221,10 +2260,10 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-white tracking-tight">
-                    Ja, das liegt nur am Simulator!
+                    {t('cover3d.iframeModalTitle')}
                   </h3>
                   <p className="text-xs text-sky-300">
-                    Browser-Sicherheitsrichtlinie für iFrames
+                    {t('cover3d.iframeModalSubtitle')}
                   </p>
                 </div>
               </div>
@@ -2238,17 +2277,17 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
 
             <div className="space-y-3 text-xs text-slate-300 leading-relaxed">
               <p>
-                Im AI Studio Vorschau-Fenster läuft die Web-App innerhalb eines sogenannten <strong className="text-white">iFrames (Cross-Origin Sub-Frame)</strong>.
+                {t('cover3d.iframeModalDesc1')}
               </p>
               <p>
-                Browser wie Google Chrome, Edge und Brave blockieren in iFrames aus Sicherheitsgründen den direkten Schreibzugriff auf Festplattenordner (<code className="text-amber-300 font-mono text-[11px]">showDirectoryPicker</code>).
+                {t('cover3d.iframeModalDesc2')}
               </p>
               <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-200">
                 <p className="font-semibold text-emerald-100 mb-1">
-                  Im echten Browser-Tab:
+                  {t('cover3d.iframeModalRealTab')}
                 </p>
                 <p className="text-[11px] text-slate-300">
-                  Sobald du die App in einem <strong>eigenen Tab</strong> öffnest (oder als installierte/bereitgestellte App), läuft sie nicht im iFrame. Das direkte Speichern und Bereinigen in deinen echten Ordner auf der SD-Karte / Festplatte funktioniert dort 100% einwandfrei!
+                  {t('cover3d.iframeModalRealTabDesc')}
                 </p>
               </div>
             </div>
@@ -2263,7 +2302,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white shadow-lg shadow-sky-950/40 transition cursor-pointer flex items-center justify-center gap-2"
               >
                 <ExternalLink className="w-4 h-4" />
-                <span>In eigenem Tab öffnen (für direkten Ordnerzugriff)</span>
+                <span>{t('cover3d.btnOpenNewTabDirect')}</span>
               </button>
               <button
                 type="button"
@@ -2274,14 +2313,14 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-950/40 transition cursor-pointer flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
-                <span>Jetzt als ZIP-Archiv herunterladen ({filteredItems.length} Covers)</span>
+                <span>{t('cover3d.btnDownloadZipCount', { count: filteredItems.length })}</span>
               </button>
               <button
                 type="button"
                 onClick={() => setIsIframeRestrictionModalOpen(false)}
                 className="w-full py-2 text-xs font-semibold text-slate-400 hover:text-white transition cursor-pointer text-center"
               >
-                Schließen
+                {t('cover3d.btnClose')}
               </button>
             </div>
           </div>
@@ -2303,10 +2342,10 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-white tracking-tight">
-                    Images für Handhelds verkleinern?
+                    {t('cover3d.downscaleModalTitle')}
                   </h3>
                   <p className="text-xs text-slate-300">
-                    Sorgt für ruckelfreies, schnelles Scrollen in Batocera, RetroPie & EmulationStation.
+                    {t('cover3d.downscaleModalSubtitle')}
                   </p>
                 </div>
               </div>
@@ -2323,29 +2362,29 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
             <div className="p-3.5 rounded-xl bg-slate-950/70 border border-white/10 space-y-2 text-xs">
               <div className="flex items-center gap-2 text-emerald-300 font-semibold">
                 <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span>Aspect Ratio bleibt 100% erhalten (kein Verzerren oder Dehnen)</span>
+                <span>{t('cover3d.downscaleAspect')}</span>
               </div>
               <div className="flex items-center gap-2 text-sky-300 font-semibold">
                 <Check className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                <span>Nur PNG: Höchste Frontend-Kompatibilität (kein WebP)</span>
+                <span>{t('cover3d.downscalePngOnly')}</span>
               </div>
               <div className="flex items-center gap-2 text-amber-300 font-semibold">
                 <ShieldCheck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span>Template.png bleibt vollkommen unberührt in Originalgröße</span>
+                <span>{t('cover3d.downscaleTemplateSafe')}</span>
               </div>
             </div>
 
             {/* Resolution Selector */}
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-200 block">
-                Maximale Bildkante auswählen:
+                {t('cover3d.downscaleSelectEdge')}
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { size: 500, label: '500 px', desc: 'Miyoo Mini, Anbernic RG35XX (Ultra-flüssig)' },
-                  { size: 600, label: '600 px (Empfohlen)', desc: 'Optimaler Standard für 480p/720p Frontends' },
-                  { size: 720, label: '720 px', desc: 'HD Handhelds (Retroid Pocket, Odin)' },
-                  { size: 800, label: '800 px', desc: 'Höhere Auflösung für TV & große Displays' },
+                  { size: 500, label: '500 px', desc: 'Miyoo Mini, Anbernic RG35XX' },
+                  { size: 600, label: '600 px (Default)', desc: 'Optimal standard for 480p/720p frontends' },
+                  { size: 720, label: '720 px', desc: 'HD handhelds (Retroid Pocket, Odin)' },
+                  { size: 800, label: '800 px', desc: 'Higher resolution for TV & large displays' },
                 ].map((preset) => (
                   <button
                     key={preset.size}
@@ -2377,7 +2416,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
               <div className="space-y-1.5 p-3 rounded-xl bg-slate-950 border border-sky-500/30">
                 <div className="flex items-center justify-between text-xs text-slate-300">
                   <span className="truncate max-w-[280px]">
-                    Optimiere: {downscaleProgress.filename}
+                    {t('cover3d.downscaleOptimizing', { file: downscaleProgress.filename })}
                   </span>
                   <span className="font-mono text-sky-400 font-bold shrink-0">
                     {downscaleProgress.current} / {downscaleProgress.total}
@@ -2404,7 +2443,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 onClick={() => setIsDownscaleModalOpen(false)}
                 className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer disabled:opacity-40"
               >
-                Überspringen / Später
+                {t('cover3d.downscaleSkip')}
               </button>
               <button
                 type="button"
@@ -2416,8 +2455,8 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 <Zap className="w-4 h-4 text-amber-300" />
                 <span>
                   {isDownscaling
-                    ? 'Verkleinere Covers...'
-                    : `Jetzt auf max. ${targetMaxDimension}px verkleinern`}
+                    ? t('cover3d.downscaleExecuting')
+                    : t('cover3d.downscaleExecute', { dim: targetMaxDimension })}
                 </span>
               </button>
             </div>
@@ -2431,7 +2470,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-xl">💾</span>
-                <h3 className="text-base font-bold text-white">Eigenes Box-Preset speichern</h3>
+                <h3 className="text-base font-bold text-white">{t('cover3d.savePresetModalTitle')}</h3>
               </div>
               <button
                 type="button"
@@ -2443,16 +2482,20 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Speichere deine aktuellen 3D-Werte ({angle}° Blickwinkel, {Math.round(spineWidthRatio * 100)}% Buchrücken-Tiefe, {Math.round(glossOpacity * 100)}% Glanz), um jederzeit konsistente Covers zu erstellen.
+              {t('cover3d.savePresetModalDesc', {
+                angle,
+                spine: Math.round(spineWidthRatio * 100),
+                gloss: Math.round(glossOpacity * 100),
+              })}
             </p>
 
             <div className="space-y-1.5">
-              <label className="text-xs text-slate-300 font-medium">Name des Presets:</label>
+              <label className="text-xs text-slate-300 font-medium">{t('cover3d.savePresetNameLabel')}</label>
               <input
                 type="text"
                 value={newPresetName}
                 onChange={(e) => setNewPresetName(e.target.value)}
-                placeholder="z.B. SNES EU Standard (26°, 14% Rücken)"
+                placeholder={t('cover3d.savePresetPlaceholder')}
                 className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-white/15 text-xs text-white placeholder-slate-500 focus:border-violet-500 focus:outline-hidden"
               />
             </div>
@@ -2463,7 +2506,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 onClick={() => setIsSavePresetModalOpen(false)}
                 className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white cursor-pointer"
               >
-                Abbrechen
+                {t('confirm.cancel')}
               </button>
               <button
                 type="button"
@@ -2471,7 +2514,7 @@ export const Cover3dStudioView: React.FC<Cover3dStudioViewProps> = ({
                 onClick={handleSaveCurrentAsPreset}
                 className="px-4 py-2 rounded-xl text-xs font-bold bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white shadow-md shadow-violet-900/30 cursor-pointer"
               >
-                Preset speichern
+                {t('cover3d.btnSavePreset')}
               </button>
             </div>
           </div>
