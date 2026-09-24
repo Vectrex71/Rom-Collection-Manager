@@ -2,6 +2,7 @@ import React from 'react';
 import { Gamepad2, Sparkles, RotateCcw, Download, FolderOpen, Box, Disc, Cpu } from 'lucide-react';
 import { RomFile } from '../types';
 import { useTranslation, Language } from '../i18n';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface HeaderProps {
   folderName: string | null;
@@ -50,8 +51,8 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Left: Brand Lockup & Navigation */}
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-linear-to-tr from-violet-600 via-fuchsia-600 to-amber-400 text-white flex items-center justify-center font-black text-xs shadow-lg shadow-violet-900/40 border border-white/20 shrink-0">
-              <Gamepad2 className="w-4 h-4 text-white drop-shadow-xs" />
+            <div className="w-8 h-8 rounded-xl bg-linear-to-tr from-violet-600 via-fuchsia-600 to-amber-400 text-white flex items-center justify-center p-0.5 shadow-lg shadow-violet-900/40 border border-white/20 shrink-0 overflow-hidden">
+              <img src="/favicon.png" alt="ROM Manager" className="w-full h-full object-contain rounded-lg" />
             </div>
             <div className="hidden sm:flex flex-col">
               <div className="flex items-center gap-1.5">
@@ -236,6 +237,9 @@ export const Header: React.FC<HeaderProps> = ({
               <span>{folderName ? t('header.rescan') : t('header.scanFolder')}</span>
             </button>
           )}
+
+          {/* PWA In-App Install Button */}
+          <PWAInstallButton />
 
           {/* Language Flag Switcher (D / E) */}
           <div

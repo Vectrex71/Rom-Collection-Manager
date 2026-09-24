@@ -22,7 +22,10 @@
     "organize": "Organize",
     "scanFolder": "Scan Folder",
     "rescan": "Rescan",
-    "byAuthor": "by"
+    "byAuthor": "by",
+    "installPwa": "Install App",
+    "installPwaTitle": "Install ROM Collection Manager as desktop or mobile app",
+    "installIos": "Install on iOS"
   },
   "landing": {
     "badge": "No-Intro & 1G1R Standard • Automatic M3U Playlists • 3D Box Studio",
@@ -657,5 +660,15 @@
     "localBadgeDesc": "Your ROMs are not uploaded to external servers. All checksums and No-Intro matches run purely in local memory.",
     "btnCancel": "Cancel",
     "btnScan": "Scan Now ({{count}})"
+  },
+  "pwa": {
+    "installTitle": "Install App",
+    "installDesc": "Install ROM Collection Manager for instant access, offline operation, and clean desktop or home screen integration with custom icon.",
+    "iosTitle": "Install on iPhone / iPad",
+    "iosStep1": "Tap the Share button in the Safari toolbar.",
+    "iosStep2": "Scroll down and tap 'Add to Home Screen'.",
+    "offlineTitle": "Offline Mode",
+    "offlineNotice": "Offline Mode — Local ROM tools & cached assets available.",
+    "close": "Close"
   }
 }

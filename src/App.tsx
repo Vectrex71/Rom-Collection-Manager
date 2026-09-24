@@ -22,6 +22,7 @@ import { UndoModal } from './components/UndoModal';
 import { SideFileCleanupModal } from './components/SideFileCleanupModal';
 import { Cover3dStudioView } from './components/Cover3dStudioView';
 import { BiosStudioView } from './components/BiosStudioView';
+import { OfflineIndicator } from './components/OfflineIndicator';
 import {
   RomFile,
   ScanFilters,
@@ -1714,6 +1715,9 @@ export default function App() {
           </button>
         </div>
       )}
+
+      {/* Offline Status Indicator */}
+      <OfflineIndicator />
     </div>
   );
 }

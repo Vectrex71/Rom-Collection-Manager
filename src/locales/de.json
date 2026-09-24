@@ -22,7 +22,10 @@
     "organize": "Ordnen",
     "scanFolder": "Ordner scannen",
     "rescan": "Neu scannen",
-    "byAuthor": "by"
+    "byAuthor": "by",
+    "installPwa": "App installieren",
+    "installPwaTitle": "ROM Collection Manager als Desktop- oder Smartphone-App installieren",
+    "installIos": "Auf iOS installieren"
   },
   "landing": {
     "badge": "No-Intro & 1G1R Standard • Automatische M3U Playlists • 3D Box Studio",
@@ -657,5 +660,15 @@
     "localBadgeDesc": "Deine ROMs werden nicht auf externe Server hochgeladen. Alle Prüfsummen und No-Intro-Katalogabgleiche laufen rein lokal in deinem PC-Speicher.",
     "btnCancel": "Abbrechen",
     "btnScan": "Jetzt scannen ({{count}})"
+  },
+  "pwa": {
+    "installTitle": "App installieren",
+    "installDesc": "Installiere den ROM Collection Manager für blitzschnellen Direktzugriff, Offline-Nutzung und nahtlose Einbindung auf dem Desktop oder Startbildschirm mit eigenem Icon.",
+    "iosTitle": "Auf iPhone / iPad installieren",
+    "iosStep1": "Tippe in der Safari-Symbolleiste auf das Teilen-Symbol.",
+    "iosStep2": "Scrolle nach unten und tippe auf „Zum Home-Bildschirm“.",
+    "offlineTitle": "Offline-Modus",
+    "offlineNotice": "Offline-Modus — Lokale ROM-Tools & Zwischenspeicher verfügbar.",
+    "close": "Schließen"
   }
 }

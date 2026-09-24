@@ -1,0 +1,50 @@
+{
+  "id": "/",
+  "name": "ROM Collection Manager",
+  "short_name": "ROM Manager",
+  "description": "Scanne, katalogisiere und bereinige deine ROM-Sammlung mit No-Intro-Standards, 1G1R-Kuration, Schutz für Fan-Translations & Romhacks, automatischen M3U-Playlists für Multi-Disk-Spiele und 3D-Cover-Studio.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#090d16",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
